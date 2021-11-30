@@ -34,7 +34,7 @@ point2d *brute_force_k_nearest(const point2d *pts, size_t n, const point2d *pt, 
 point2d nearest_points[] = {{0, 3}, {100, 0}, {1, 1}, {99, -5}, {101, -4}, {-1, -5000}, {-5000, -5}, {98, -3}, {102, -2}, {-1, -5}};
 size_t nearest_count = sizeof(nearest_points) / sizeof(*nearest_points);
 
-#define SMALL_TEST_SIZE (500)
+#define SMALL_TEST_SIZE (1500)
 #define LARGE_TEST_SIZE (1000000)
 
 point2d test_points[] =
@@ -672,9 +672,6 @@ void test_k_nearest_random(size_t n, size_t k)
       i++;
     }
 
-  free(nearest);
-  free(nearest_bf);
-  
   if (i < n && i < k)
     {
       printf("FAILED -- for nearest to %lf %lf at index %zuth got %f %f (d=%lf) instead of %f %f (d=%lf)\n",
@@ -684,9 +681,14 @@ void test_k_nearest_random(size_t n, size_t k)
 	     point2d_distance(&query, nearest + i),
 	     nearest_bf[i].x, nearest_bf[i].y,
 	     point2d_distance(&query, nearest_bf + i));
+      free(nearest);
+      free(nearest_bf);
     }
   else
     {
+      free(nearest);
+      free(nearest_bf);
+  
       printf("PASSED\n");
     }
 }
