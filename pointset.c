@@ -37,7 +37,8 @@ void pointset_for_each(const pointset* t, void (*f)(const point2d *, void *), vo
 void pointset_destroy(pointset *t);
 
 int compare_points(const point2d pt1, const point2d pt2);
-pointnode recursive_create(const point2d *pts, size_t n);
+pointnode *find_path(pointnode *root, const point2d pt);
+pointset *pointset_recursive(const point2d *pts, size_t n);
 
 
 pointset *pointset_create(const point2d *pts, size_t n)
@@ -55,39 +56,158 @@ pointset *pointset_create(const point2d *pts, size_t n)
         return result;
     }
 
-    qsort(pts, n, sizeof(point2d), compare_points);
+    point2d *pts_cpy = malloc(sizeof(point2d) * n);
+    memcpy(pts_cpy, pts, sizeof(point2d) * n);
+
+    qsort(pts_cpy, n, sizeof(point2d), compare_points);
 
     pointnode *root = malloc(sizeof(pointnode));
-    root->x = pts[n / 2].x;
-    root->y = pts[n / 2].y;
+    root->x = pts_cpy[n / 2].x;
+    root->y = pts_cpy[n / 2].y;
     result->root = root;
 
-    // root->NW = recursive_create()
-
-    point2dNode *NW_list = malloc(sizeof(point2dNode));
-    point2dNode *SW_list = malloc(sizeof(point2dNode));
+    point2d *NW_list = malloc(sizeof(point2d) * n / 2);
+    size_t NW_size = 0;
+    point2d *SW_list = malloc(sizeof(point2d) * n / 2);
+    size_t SW_size = 0;
     for (int i = 0; i < n / 2; i++)
     {
-        point2dNode *NW_curr = malloc(sizeof(point2dNode));
-        point2dNode *SW_curr = malloc(sizeof(point2dNode));
-
-        if (pts[i].y > root->y)
+        if (pts_cpy[i].y > root->y)
         {
-            NW_list->pt = pts[i];
-            NW_curr = NW_curr->next;
+            NW_list[NW_size] = pts_cpy[i];
+            NW_size++;
         }
         else
         {
-            SW_list->pt = pts[i];
-            SW_curr = SW_curr->next;
+            SW_list[SW_size] = pts_cpy[i];
+            SW_size++;
         }
     }
+    pointset *NW_subtree = pointset_create(NW_list, NW_size);
+    root->NW = NW_subtree->root;
+    pointset *SW_subtree = pointset_create(SW_list, SW_size);
+    root->SW = SW_subtree->root;
+
+    point2d *NE_list = malloc(sizeof(point2d) * n / 2);
+    size_t NE_size = 0;
+    point2d *SE_list = malloc(sizeof(point2d) * n / 2);
+    size_t SE_size = 0;
+    for (int i = n / 2; i < n; i++)
+    {
+        if (pts_cpy[i].y > root->y)
+        {
+            NE_list[NE_size] = pts_cpy[i];
+            NE_size++;
+        }
+        else
+        {
+            SE_list[SE_size] = pts_cpy[i];
+            SE_size++;
+        }
+    }
+    pointset *NE_subtree = pointset_create(NE_list, NE_size);
+    root->NE = NE_subtree->root;
+    pointset *SE_subtree = pointset_create(SE_list, SE_size);
+    root->SE = SE_subtree->root;
+
+    return result;
 }
 
 
-pointnode recursive_create(const point2d *pts, size_t n)
+pointset *pointset_recursive(const point2d *pts, size_t n)
 {
 
+}
+
+
+size_t pointset_size(const pointset *t)
+{
+    return t->size;
+}
+
+
+bool pointset_add(pointset *t, const point2d *pt)
+{
+    if (pointset_contains(t, pt))
+    {
+        return false;
+    }
+
+    pointnode *curr_node = t->root;
+    while (curr_node != NULL)
+    {
+        if (pt->x < curr_node->x)
+        {
+            if (pt->y > curr_node->y)
+            {
+                curr_node = curr_node->NW;
+            }
+            else
+            {
+                curr_node = curr_node->SW;
+            }
+        }
+        else
+        {
+            if (pt->y > curr_node->y)
+            {
+                curr_node = curr_node->NE;
+            }
+            else
+            {
+                curr_node = curr_node->SE;
+            }
+        }
+    }
+
+    pointnode *new_node = malloc(sizeof(pointnode));
+    if (new_node == NULL)
+    {
+        return false;
+    }
+
+    new_node->x = pt->x;
+    new_node->y = pt->y;
+
+    return true;
+}
+
+
+bool pointset_contains(const pointset *t, const point2d *pt)
+{
+    pointnode *curr_node = t->root;
+    while ((curr_node->x != pt->x && curr_node->y != pt->y) || curr_node != NULL)
+    {
+        if (pt->x < curr_node->x)
+        {
+            if (pt->y > curr_node->y)
+            {
+                curr_node = curr_node->NW;
+            }
+            else
+            {
+                curr_node = curr_node->SW;
+            }
+        }
+        else
+        {
+            if (pt->y > curr_node->y)
+            {
+                curr_node = curr_node->NE;
+            }
+            else
+            {
+                curr_node = curr_node->SE;
+            }
+        }
+    }
+
+    if (curr_node == NULL)
+    {
+        return NULL;
+    }
+
+    return true;
 }
 
 
@@ -116,4 +236,34 @@ int comapre_points(const point2d pt1, const point2d pt2)
             return 0;
         }
     }
+}
+
+pointnode *find_path(pointnode *root, const point2d *pt)
+{
+    pointnode *curr_node = root;
+        while (curr_node != NULL)
+        {
+            if (pt->x < curr_node->x)
+            {
+                if (pt->y > curr_node->y)
+                {
+                    curr_node = curr_node->NW;
+                }
+                else
+                {
+                    curr_node = curr_node->SW;
+                }
+            }
+            else
+            {
+                if (pt->y > curr_node->y)
+                {
+                    curr_node = curr_node->NE;
+                }
+                else
+                {
+                    curr_node = curr_node->SE;
+                }
+            }
+        }
 }
