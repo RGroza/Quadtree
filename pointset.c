@@ -6,16 +6,15 @@
 #include "point2d.h"
 #include "pointset.h"
 
-typedef struct _pointset
+struct _pointset
 {
     struct _pointnode *root;
     size_t size;
-} pointset;
+};
 
 typedef struct _pointnode
 {
-    double x;
-    double y;
+    point2d *pt;
     struct _pointnode *NW;
     struct _pointnode *SW;
     struct _pointnode *SE;
@@ -40,7 +39,9 @@ pointnode *find_path(pointnode *root, const point2d *pt);
 pointset *pointset_create(const point2d *pts, size_t n)
 {
     pointset *result = malloc(sizeof(pointset));
-    if (result == NULL)
+    result->root = malloc(sizeof(pointnode));
+
+    if (result == NULL || result->root == NULL)
     {
         return NULL;
     }
@@ -48,7 +49,6 @@ pointset *pointset_create(const point2d *pts, size_t n)
     result->size = n;
     if (pts == NULL && n == 0)
     {
-        result->root = NULL;
         return result;
     }
 
@@ -57,12 +57,11 @@ pointset *pointset_create(const point2d *pts, size_t n)
 
     qsort(pts_cpy, n, sizeof(point2d), compare_points);
 
-    pointnode *root = malloc(sizeof(pointnode));
-    root->x = pts_cpy[n / 2].x;
-    root->y = pts_cpy[n / 2].y;
-    result->root = root;
+    result->root->pt = malloc(sizeof(point2d));
+    result->root->pt->x = pts_cpy[n / 2].x;
+    result->root->pt->y = pts_cpy[n / 2].y;
 
-    pointset_recursive(root, pts_cpy, n);
+    pointset_recursive(result->root, pts_cpy, n);
 
     return result;
 }
@@ -76,7 +75,7 @@ void pointset_recursive(pointnode *root, const point2d *pts, size_t n)
     size_t SW_size = 0;
     for (int i = 0; i < n / 2; i++)
     {
-        if (pts[i].y > root->y)
+        if (pts[i].y > root->pt->y)
         {
             NW_list[NW_size] = pts[i];
             NW_size++;
@@ -91,8 +90,9 @@ void pointset_recursive(pointnode *root, const point2d *pts, size_t n)
     if (NW_size > 0)
     {
         pointnode *NW_child = malloc(sizeof(pointnode));
-        NW_child->x = NW_list[n / 2].x;
-        NW_child->y = NW_list[n / 2].y;
+        NW_child->pt = malloc(sizeof(point2d));
+        NW_child->pt->x = NW_list[n / 2].x;
+        NW_child->pt->y = NW_list[n / 2].y;
 
         root->NW = NW_child;
   
@@ -103,8 +103,9 @@ void pointset_recursive(pointnode *root, const point2d *pts, size_t n)
     if (SW_size > 0)
     {
         pointnode *SW_child = malloc(sizeof(pointnode));
-        SW_child->x = SW_list[n / 2].x;
-        SW_child->y = SW_list[n / 2].y;
+        SW_child->pt = malloc(sizeof(point2d));
+        SW_child->pt->x = SW_list[n / 2].x;
+        SW_child->pt->y = SW_list[n / 2].y;
 
         root->SW = SW_child;
   
@@ -117,9 +118,9 @@ void pointset_recursive(pointnode *root, const point2d *pts, size_t n)
     size_t NE_size = 0;
     point2d *SE_list = malloc(sizeof(point2d) * n / 2);
     size_t SE_size = 0;
-    for (int i = 0; i < n / 2; i++)
+    for (int i = n / 2; i < n; i++)
     {
-        if (pts[i].y > root->y)
+        if (pts[i].y > root->pt->y)
         {
             NE_list[NE_size] = pts[i];
             NE_size++;
@@ -134,8 +135,9 @@ void pointset_recursive(pointnode *root, const point2d *pts, size_t n)
     if (NE_size > 0)
     {
         pointnode *NE_child = malloc(sizeof(pointnode));
-        NE_child->x = NE_list[n / 2].x;
-        NE_child->y = NE_list[n / 2].y;
+        NE_child->pt = malloc(sizeof(point2d));
+        NE_child->pt->x = NE_list[n / 2].x;
+        NE_child->pt->y = NE_list[n / 2].y;
 
         root->NE = NE_child;
   
@@ -146,8 +148,9 @@ void pointset_recursive(pointnode *root, const point2d *pts, size_t n)
     if (SE_size > 0)
     {
         pointnode *SE_child = malloc(sizeof(pointnode));
-        SE_child->x = SE_list[n / 2].x;
-        SE_child->y = SE_list[n / 2].y;
+        SE_child->pt = malloc(sizeof(point2d));
+        SE_child->pt->x = SE_list[n / 2].x;
+        SE_child->pt->y = SE_list[n / 2].y;
 
         root->SE = SE_child;
   
@@ -170,20 +173,66 @@ bool pointset_add(pointset *t, const point2d *pt)
         return false;
     }
 
-    pointnode *curr_node = t->root;
-    while (curr_node != NULL)
+    if (t->root->pt == NULL)
     {
-        find_path(curr_node, pt);
+        t->root->pt = malloc(sizeof(point2d));
+        if (t->root->pt == NULL)
+        {
+            return false;
+        }
+
+        t->root->pt->x = pt->x;
+        t->root->pt->y = pt->y;
+
+        return true;
     }
 
-    pointnode *new_node = malloc(sizeof(pointnode));
+    pointnode *curr_node = t->root;
+    pointnode *prev_node;
+    while (curr_node != NULL)
+    {
+        prev_node = curr_node;
+        curr_node = find_path(curr_node, pt);
+    }
+
+    pointnode *new_node;
+    if (pt->x < prev_node->pt->x)
+    {
+        if (pt->y > prev_node->pt->y)
+        {
+            prev_node->NW = malloc(sizeof(pointnode));
+            new_node = prev_node->NW;
+        }
+        else
+        {
+            prev_node->SW = malloc(sizeof(pointnode));
+            new_node = prev_node->SW;
+        }
+    }
+    else
+    {
+        if (pt->y > prev_node->pt->y)
+        {
+            prev_node->NE = malloc(sizeof(pointnode));
+            new_node = prev_node->NE;
+        }
+        else
+        {
+            prev_node->SE = malloc(sizeof(pointnode));
+            new_node = prev_node->SE;
+        }
+    }
+
     if (new_node == NULL)
     {
         return false;
     }
 
-    new_node->x = pt->x;
-    new_node->y = pt->y;
+    new_node->pt = malloc(sizeof(point2d));
+    new_node->pt->x = pt->x;
+    new_node->pt->y = pt->y;
+
+    t->size++;
 
     return true;
 }
@@ -191,22 +240,26 @@ bool pointset_add(pointset *t, const point2d *pt)
 
 bool pointset_contains(const pointset *t, const point2d *pt)
 {
-    pointnode *curr_node = t->root;
-    while ((curr_node->x != pt->x && curr_node->y != pt->y) || curr_node != NULL)
+    if (t->root->pt == NULL)
     {
-        curr_node = find_path(curr_node, pt);
+        return false;
     }
 
-    if (curr_node == NULL)
+    pointnode *curr_node = t->root;
+    while (curr_node->pt->x != pt->x && curr_node->pt->y != pt->y)
     {
-        return NULL;
+        curr_node = find_path(curr_node, pt);
+        if (curr_node == NULL)
+        {
+            return false;
+        }
     }
 
     return true;
 }
 
 
-int comapre_points(const void *p1, const void *p2)
+int compare_points(const void *p1, const void *p2)
 {
     point2d pt1 = *(point2d *)p1;
     point2d pt2 = *(point2d *)p2;
@@ -238,9 +291,9 @@ int comapre_points(const void *p1, const void *p2)
 
 pointnode *find_path(pointnode *root, const point2d *pt)
 {
-    if (pt->x < root->x)
+    if (pt->x < root->pt->x)
     {
-        if (pt->y > root->y)
+        if (pt->y > root->pt->y)
         {
             return root->NW;
         }
@@ -251,7 +304,7 @@ pointnode *find_path(pointnode *root, const point2d *pt)
     }
     else
     {
-        if (pt->y > root->y)
+        if (pt->y > root->pt->y)
         {
             return root->NE;
         }
@@ -289,4 +342,22 @@ void pointnode_delete(pointnode *root)
         pointnode_delete(root->NE);
     }
     free(root);
+}
+
+
+void pointset_for_each(const pointset* t, void (*f)(const point2d *, void *), void *arg)
+{
+
+}
+
+
+void pointset_nearest_neighbor(const pointset *t, const point2d *pt, point2d *neighbor, double *d)
+{
+    
+}
+
+
+point2d *pointset_k_nearest(const pointset *t, const point2d *pt, size_t k)
+{
+    return NULL;
 }
