@@ -34,6 +34,7 @@ void pointset_destroy(pointset *t);
 void pointnode_delete(pointnode *root);
 int compare_points(const void *p1, const void *p2);
 pointnode *find_path(pointnode *root, const point2d *pt);
+void recursive_search(const pointnode *root, void (*f)(const point2d *, void *), void *arg);
 
 
 pointset *pointset_create(const point2d *pts, size_t n)
@@ -258,7 +259,7 @@ bool pointset_contains(const pointset *t, const point2d *pt)
     }
 
     pointnode *curr_node = t->root;
-    while (curr_node->pt->x != pt->x && curr_node->pt->y != pt->y)
+    while (curr_node->pt->x != pt->x || curr_node->pt->y != pt->y)
     {
         curr_node = find_path(curr_node, pt);
         if (curr_node == NULL)
@@ -359,7 +360,34 @@ void pointnode_delete(pointnode *root)
 
 void pointset_for_each(const pointset* t, void (*f)(const point2d *, void *), void *arg)
 {
+    recursive_search(t->root, f, arg);
+}
 
+void recursive_search(const pointnode *root, void (*f)(const point2d *, void *), void *arg)
+{
+    if (root->NW == NULL && root->NW == NULL && root->NW == NULL && root->NW == NULL)
+    {
+
+    }
+    else
+    {
+        if (root->NW != NULL)
+        {
+            recursive_search(root->NW, f, arg);
+        }
+        if (root->SW != NULL)
+        {
+            recursive_search(root->SW, f, arg);
+        }
+        if (root->SE != NULL)
+        {
+            recursive_search(root->SE, f, arg);
+        }
+        if (root->NE != NULL)
+        {
+            recursive_search(root->NE, f, arg);
+        }
+    }
 }
 
 
