@@ -363,30 +363,28 @@ void pointset_for_each(const pointset* t, void (*f)(const point2d *, void *), vo
     recursive_search(t->root, f, arg);
 }
 
+
 void recursive_search(const pointnode *root, void (*f)(const point2d *, void *), void *arg)
 {
-    if (root->NW == NULL && root->NW == NULL && root->NW == NULL && root->NW == NULL)
+    if (root->NW != NULL)
     {
-
+        recursive_search(root->NW, f, arg);
     }
-    else
+    if (root->SW != NULL)
     {
-        if (root->NW != NULL)
-        {
-            recursive_search(root->NW, f, arg);
-        }
-        if (root->SW != NULL)
-        {
-            recursive_search(root->SW, f, arg);
-        }
-        if (root->SE != NULL)
-        {
-            recursive_search(root->SE, f, arg);
-        }
-        if (root->NE != NULL)
-        {
-            recursive_search(root->NE, f, arg);
-        }
+        recursive_search(root->SW, f, arg);
+    }
+    if (root->SE != NULL)
+    {
+        recursive_search(root->SE, f, arg);
+    }
+    if (root->NE != NULL)
+    {
+        recursive_search(root->NE, f, arg);
+    }
+    if (root->pt != NULL)
+    {
+        f(root->pt, arg);
     }
 }
 
