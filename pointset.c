@@ -91,12 +91,15 @@ void pointset_recursive(pointnode *root, const point2d *pts, size_t n)
     {
         pointnode *NW_child = malloc(sizeof(pointnode));
         NW_child->pt = malloc(sizeof(point2d));
-        NW_child->pt->x = NW_list[n / 2].x;
-        NW_child->pt->y = NW_list[n / 2].y;
+        NW_child->pt->x = NW_list[NW_size / 2].x;
+        NW_child->pt->y = NW_list[NW_size / 2].y;
 
         root->NW = NW_child;
-  
-        pointset_recursive(NW_child, NW_list, NW_size);
+
+        if (NW_size > 1)
+        {
+            pointset_recursive(NW_child, NW_list, NW_size);
+        }
     }
     free(NW_list);
 
@@ -104,12 +107,15 @@ void pointset_recursive(pointnode *root, const point2d *pts, size_t n)
     {
         pointnode *SW_child = malloc(sizeof(pointnode));
         SW_child->pt = malloc(sizeof(point2d));
-        SW_child->pt->x = SW_list[n / 2].x;
-        SW_child->pt->y = SW_list[n / 2].y;
+        SW_child->pt->x = SW_list[SW_size / 2].x;
+        SW_child->pt->y = SW_list[SW_size / 2].y;
 
         root->SW = SW_child;
-  
-        pointset_recursive(SW_child, SW_list, SW_size);
+
+        if (SW_size > 1)
+        {
+            pointset_recursive(SW_child, SW_list, SW_size);
+        }
     }
     free(SW_list);
 
@@ -118,7 +124,7 @@ void pointset_recursive(pointnode *root, const point2d *pts, size_t n)
     size_t NE_size = 0;
     point2d *SE_list = malloc(sizeof(point2d) * n / 2);
     size_t SE_size = 0;
-    for (int i = n / 2; i < n; i++)
+    for (int i = n / 2 + 1; i < n; i++)
     {
         if (pts[i].y > root->pt->y)
         {
@@ -136,12 +142,15 @@ void pointset_recursive(pointnode *root, const point2d *pts, size_t n)
     {
         pointnode *NE_child = malloc(sizeof(pointnode));
         NE_child->pt = malloc(sizeof(point2d));
-        NE_child->pt->x = NE_list[n / 2].x;
-        NE_child->pt->y = NE_list[n / 2].y;
+        NE_child->pt->x = NE_list[NE_size / 2].x;
+        NE_child->pt->y = NE_list[NE_size / 2].y;
 
         root->NE = NE_child;
-  
-        pointset_recursive(NE_child, NE_list, NE_size);
+
+        if (NE_size > 1)
+        {
+            pointset_recursive(NE_child, NE_list, NE_size);
+        }
     }
     free(NE_list);
 
@@ -149,12 +158,15 @@ void pointset_recursive(pointnode *root, const point2d *pts, size_t n)
     {
         pointnode *SE_child = malloc(sizeof(pointnode));
         SE_child->pt = malloc(sizeof(point2d));
-        SE_child->pt->x = SE_list[n / 2].x;
-        SE_child->pt->y = SE_list[n / 2].y;
+        SE_child->pt->x = SE_list[SE_size / 2].x;
+        SE_child->pt->y = SE_list[SE_size / 2].y;
 
         root->SE = SE_child;
-  
-        pointset_recursive(SE_child, SE_list, SE_size);
+
+        if (SE_size > 1)
+        {
+            pointset_recursive(SE_child, SE_list, SE_size);
+        }
     }
     free(SE_list);
 }
