@@ -1,1 +1,27 @@
-==9896== error calling PR_SET_PTRACER, vgdb might block
+==10351== Cachegrind, a cache and branch-prediction profiler
+==10351== Copyright (C) 2002-2017, and GNU GPL'd, by Nicholas Nethercote et al.
+==10351== Using Valgrind-3.15.0 and LibVEX; rerun with -h for copyright info
+==10351== Command: ./PointsetUnit 23 123
+==10351== Parent PID: 1613
+==10351== 
+--10351-- warning: L3 cache found, using its data for the LL simulation.
+==10351== error calling PR_SET_PTRACER, vgdb might block
+==10351== brk segment overflow in thread #1: can't grow to 0x484f000
+==10351== (see section Limitations in user manual)
+==10351== NOTE: further instances of this message will not be shown
+==10351== 
+==10351== I   refs:      2,510,804,547
+==10351== I1  misses:            1,163
+==10351== LLi misses:            1,150
+==10351== I1  miss rate:          0.00%
+==10351== LLi miss rate:          0.00%
+==10351== 
+==10351== D   refs:      1,450,012,676  (1,110,032,516 rd   + 339,980,160 wr)
+==10351== D1  misses:       34,476,373  (   32,972,792 rd   +   1,503,581 wr)
+==10351== LLd misses:        3,317,864  (    1,817,148 rd   +   1,500,716 wr)
+==10351== D1  miss rate:           2.4% (          3.0%     +         0.4%  )
+==10351== LLd miss rate:           0.2% (          0.2%     +         0.4%  )
+==10351== 
+==10351== LL refs:          34,477,536  (   32,973,955 rd   +   1,503,581 wr)
+==10351== LL misses:         3,319,014  (    1,818,298 rd   +   1,500,716 wr)
+==10351== LL miss rate:            0.1% (          0.1%     +         0.4%  )

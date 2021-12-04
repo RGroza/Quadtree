@@ -41,6 +41,7 @@ void recursive_search(const pointnode *root, void (*f)(const point2d *, void *),
                       void *arg);
 void node_nearest_neighbor(pointnode *root, const point2d *pt,
                            point2d *neighbor, double *d);
+void check_distance(pointnode *node, const point2d *pt, point2d *neighbor, double *d);
 bool node_is_end(pointnode *node);
 
 pointset *pointset_create(const point2d *pts, size_t n)
@@ -416,6 +417,10 @@ void recursive_search(const pointnode *root, void (*f)(const point2d *, void *),
 void pointset_nearest_neighbor(const pointset *t, const point2d *pt,
                                point2d *neighbor, double *d)
 {
+    if (t->size < 1)
+    {
+        *d = INFINITY;
+    }
     if (t->root != NULL && t->root->pt != NULL)
     {
         *d = point2d_distance(pt, t->root->pt);
@@ -430,13 +435,7 @@ void node_nearest_neighbor(pointnode *root, const point2d *pt,
     {
         if (node_is_end(root->NW) && root->NW->pt != NULL)
         {
-            double dist = point2d_distance(pt, root->NW->pt);
-            if (dist < *d)
-            {
-                *d = dist;
-                neighbor->x = root->NW->pt->x;
-                neighbor->y = root->NW->pt->y;
-            }
+            check_distance(root->NW, pt, neighbor, d);
         }
         else
         {
@@ -449,6 +448,7 @@ void node_nearest_neighbor(pointnode *root, const point2d *pt,
             if (point2d_distance_to_rectangle(pt, NW_ll, NW_ur) < *d)
             {
                 node_nearest_neighbor(root->NW, pt, neighbor, d);
+                check_distance(root, pt, neighbor, d);
             }
             free(NW_ll);
             free(NW_ur);
@@ -459,13 +459,7 @@ void node_nearest_neighbor(pointnode *root, const point2d *pt,
     {
         if (node_is_end(root->SW) && root->SW->pt != NULL)
         {
-            double dist = point2d_distance(pt, root->SW->pt);
-            if (dist < *d)
-            {
-                *d = dist;
-                neighbor->x = root->SW->pt->x;
-                neighbor->y = root->SW->pt->y;
-            }
+            check_distance(root->SW, pt, neighbor, d);
         }
         else
         {
@@ -478,6 +472,7 @@ void node_nearest_neighbor(pointnode *root, const point2d *pt,
             if (point2d_distance_to_rectangle(pt, SW_ll, SW_ur) < *d)
             {
                 node_nearest_neighbor(root->SW, pt, neighbor, d);
+                check_distance(root, pt, neighbor, d);
             }
             free(SW_ll);
             free(SW_ur);
@@ -488,13 +483,7 @@ void node_nearest_neighbor(pointnode *root, const point2d *pt,
     {
         if (node_is_end(root->SE) && root->SE->pt != NULL)
         {
-            double dist = point2d_distance(pt, root->SE->pt);
-            if (dist < *d)
-            {
-                *d = dist;
-                neighbor->x = root->SE->pt->x;
-                neighbor->y = root->SE->pt->y;
-            }
+            check_distance(root->SE, pt, neighbor, d);
         }
         else
         {
@@ -507,6 +496,7 @@ void node_nearest_neighbor(pointnode *root, const point2d *pt,
             if (point2d_distance_to_rectangle(pt, SE_ll, SE_ur) < *d)
             {
                 node_nearest_neighbor(root->SE, pt, neighbor, d);
+                check_distance(root, pt, neighbor, d);
             }
             free(SE_ll);
             free(SE_ur);
@@ -517,13 +507,7 @@ void node_nearest_neighbor(pointnode *root, const point2d *pt,
     {
         if (node_is_end(root->NE) && root->NE->pt != NULL)
         {
-            double dist = point2d_distance(pt, root->NE->pt);
-            if (dist < *d)
-            {
-                *d = dist;
-                neighbor->x = root->NE->pt->x;
-                neighbor->y = root->NE->pt->y;
-            }
+            check_distance(root->NE, pt, neighbor, d);
         }
         else
         {
@@ -536,10 +520,22 @@ void node_nearest_neighbor(pointnode *root, const point2d *pt,
             if (point2d_distance_to_rectangle(pt, NE_ll, NE_ur) < *d)
             {
                 node_nearest_neighbor(root->NE, pt, neighbor, d);
+                check_distance(root, pt, neighbor, d);
             }
             free(NE_ll);
             free(NE_ur);
         }
+    }
+}
+
+void check_distance(pointnode *node, const point2d *pt, point2d *neighbor, double *d)
+{
+    double dist = point2d_distance(pt, node->pt);
+    if (dist < *d)
+    {
+        *d = dist;
+        neighbor->x = node->pt->x;
+        neighbor->y = node->pt->y;
     }
 }
 
