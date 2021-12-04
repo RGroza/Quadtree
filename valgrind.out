@@ -1,25 +1,25 @@
-==6680== error calling PR_SET_PTRACER, vgdb might block
-==6680== Conditional jump or move depends on uninitialised value(s)
-==6680==    at 0x10BF28: pointnode_delete (pointset.c:342)
-==6680==    by 0x10BEFD: pointset_destroy (pointset.c:336)
-==6680==    by 0x109B73: test_add (pointset_unit.c:385)
-==6680==    by 0x109360: main (pointset_unit.c:112)
-==6680== 
-==6680== Conditional jump or move depends on uninitialised value(s)
-==6680==    at 0x10BF45: pointnode_delete (pointset.c:346)
-==6680==    by 0x10BEFD: pointset_destroy (pointset.c:336)
-==6680==    by 0x109B73: test_add (pointset_unit.c:385)
-==6680==    by 0x109360: main (pointset_unit.c:112)
-==6680== 
-==6680== Conditional jump or move depends on uninitialised value(s)
-==6680==    at 0x10BF62: pointnode_delete (pointset.c:350)
-==6680==    by 0x10BEFD: pointset_destroy (pointset.c:336)
-==6680==    by 0x109B73: test_add (pointset_unit.c:385)
-==6680==    by 0x109360: main (pointset_unit.c:112)
-==6680== 
-==6680== Conditional jump or move depends on uninitialised value(s)
-==6680==    at 0x10BF7F: pointnode_delete (pointset.c:354)
-==6680==    by 0x10BEFD: pointset_destroy (pointset.c:336)
-==6680==    by 0x109B73: test_add (pointset_unit.c:385)
-==6680==    by 0x109360: main (pointset_unit.c:112)
-==6680== 
+==7385== error calling PR_SET_PTRACER, vgdb might block
+==7385== Conditional jump or move depends on uninitialised value(s)
+==7385==    at 0x10BF5E: pointnode_delete (pointset.c:344)
+==7385==    by 0x10BF33: pointset_destroy (pointset.c:338)
+==7385==    by 0x109B93: test_add (pointset_unit.c:385)
+==7385==    by 0x109380: main (pointset_unit.c:112)
+==7385== 
+==7385== Conditional jump or move depends on uninitialised value(s)
+==7385==    at 0x10BF7B: pointnode_delete (pointset.c:348)
+==7385==    by 0x10BF33: pointset_destroy (pointset.c:338)
+==7385==    by 0x109B93: test_add (pointset_unit.c:385)
+==7385==    by 0x109380: main (pointset_unit.c:112)
+==7385== 
+==7385== Conditional jump or move depends on uninitialised value(s)
+==7385==    at 0x10BF98: pointnode_delete (pointset.c:352)
+==7385==    by 0x10BF33: pointset_destroy (pointset.c:338)
+==7385==    by 0x109B93: test_add (pointset_unit.c:385)
+==7385==    by 0x109380: main (pointset_unit.c:112)
+==7385== 
+==7385== Conditional jump or move depends on uninitialised value(s)
+==7385==    at 0x10BFB5: pointnode_delete (pointset.c:356)
+==7385==    by 0x10BF33: pointset_destroy (pointset.c:338)
+==7385==    by 0x109B93: test_add (pointset_unit.c:385)
+==7385==    by 0x109380: main (pointset_unit.c:112)
+==7385== 

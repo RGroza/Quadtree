@@ -45,15 +45,8 @@ bool node_is_end(pointnode *node);
 
 pointset *pointset_create(const point2d *pts, size_t n)
 {
-    pointset *result = malloc(sizeof(pointset));
-    memset(result, 0, sizeof(result));
-    result->root = malloc(sizeof(pointnode));
-
-    // result->root->pt = NULL;
-    // result->root->NW = NULL;
-    // result->root->SW = NULL;
-    // result->root->SE = NULL;
-    // result->root->NE = NULL;
+    pointset *result = calloc(1, sizeof(pointset));
+    result->root = calloc(1, sizeof(pointnode));
 
     if (result == NULL || result->root == NULL)
     {
