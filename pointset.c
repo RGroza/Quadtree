@@ -2,6 +2,7 @@
 #include <stddef.h>
 #include <stdlib.h>
 #include <string.h>
+#include <math.h>
 
 #include "point2d.h"
 #include "pointset.h"
@@ -35,6 +36,8 @@ void pointnode_delete(pointnode *root);
 int compare_points(const void *p1, const void *p2);
 pointnode *find_path(pointnode *root, const point2d *pt);
 void recursive_search(const pointnode *root, void (*f)(const point2d *, void *), void *arg);
+void node_nearest_neighbor(pointnode *root, const point2d *pt, point2d* neighbor, double *d);
+bool node_is_end(pointnode *node);
 
 
 pointset *pointset_create(const point2d *pts, size_t n)
@@ -391,7 +394,136 @@ void recursive_search(const pointnode *root, void (*f)(const point2d *, void *),
 
 void pointset_nearest_neighbor(const pointset *t, const point2d *pt, point2d *neighbor, double *d)
 {
-    
+    if (t->root != NULL && t->root->pt != NULL)
+    {
+        *d = point2d_distance(pt, t->root->pt);
+        node_nearest_neighbor(t->root, pt, neighbor, d);
+    }
+}
+
+void node_nearest_neighbor(pointnode *root, const point2d *pt, point2d* neighbor, double *d)
+{
+    if (root->NW != NULL)
+    {
+        if (node_is_end(root->NW) && root->NW->pt != NULL)
+        {
+            double dist = point2d_distance(pt, root->NW->pt);
+            if (dist < *d)
+            {
+                *d = dist;
+                neighbor = root->NW->pt;
+            }
+        }
+        else
+        {
+            point2d *NW_ll = malloc(sizeof(point2d));
+            NW_ll->x = 0;
+            NW_ll->y = root->pt->y;
+            point2d *NW_ur = malloc(sizeof(point2d));
+            NW_ur->x = root->pt->x;
+            NW_ur->y = INFINITY;
+            if (point2d_distance_to_rectangle(pt, NW_ll, NW_ur) < *d)
+            {
+                node_nearest_neighbor(root->NW, pt, neighbor, d);
+            }
+            free(NW_ll);
+            free(NW_ur);
+        }
+    }
+
+    if (root->SW != NULL)
+    {
+        if (node_is_end(root->SW) && root->SW->pt != NULL)
+        {
+            double dist = point2d_distance(pt, root->SW->pt);
+            if (dist < *d)
+            {
+                *d = dist;
+                neighbor = root->SW->pt;
+            }
+        }
+        else
+        {
+            point2d *SW_ll = malloc(sizeof(point2d));
+            SW_ll->x = 0;
+            SW_ll->y = 0;
+            point2d *SW_ur = malloc(sizeof(point2d));
+            SW_ur->x = root->pt->x;
+            SW_ur->y = root->pt->y;
+            if (point2d_distance_to_rectangle(pt, SW_ll, SW_ur) < *d)
+            {
+                node_nearest_neighbor(root->SW, pt, neighbor, d);
+            }
+            free(SW_ll);
+            free(SW_ur);
+        }
+    }
+
+    if (root->SE != NULL)
+    {
+        if (node_is_end(root->SE) && root->SE->pt != NULL)
+        {
+            double dist = point2d_distance(pt, root->SE->pt);
+            if (dist < *d)
+            {
+                *d = dist;
+                neighbor = root->SE->pt;
+            }
+        }
+        else
+        {
+            point2d *SE_ll = malloc(sizeof(point2d));
+            SE_ll->x = root->pt->x;
+            SE_ll->y = 0;
+            point2d *SE_ur = malloc(sizeof(point2d));
+            SE_ur->x = INFINITY;
+            SE_ur->y = root->pt->y;
+            if (point2d_distance_to_rectangle(pt, SE_ll, SE_ur) < *d)
+            {
+                node_nearest_neighbor(root->SE, pt, neighbor, d);
+            }
+            free(SE_ll);
+            free(SE_ur);
+        }
+    }
+
+    if (root->NE != NULL)
+    {
+        if (node_is_end(root->NE) && root->NE->pt != NULL)
+        {
+            double dist = point2d_distance(pt, root->NE->pt);
+            if (dist < *d)
+            {
+                *d = dist;
+                neighbor = root->NE->pt;
+            }
+        }
+        else
+        {
+            point2d *NE_ll = malloc(sizeof(point2d));
+            NE_ll->x = root->pt->x;
+            NE_ll->y = root->pt->y;
+            point2d *NE_ur = malloc(sizeof(point2d));
+            NE_ur->x = INFINITY;
+            NE_ur->y = INFINITY;
+            if (point2d_distance_to_rectangle(pt, NE_ll, NE_ur) < *d)
+            {
+                node_nearest_neighbor(root->NE, pt, neighbor, d);
+            }
+            free(NE_ll);
+            free(NE_ur);
+        }
+    }
+}
+
+
+bool node_is_end(pointnode *node)
+{
+    if (node->NW == NULL && node->SW == NULL && node->SE == NULL && node->NE == NULL)
+    {
+        return true;
+    }
+    return false;
 }
 
 
