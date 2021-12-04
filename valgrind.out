@@ -1,0 +1,25 @@
+==6680== error calling PR_SET_PTRACER, vgdb might block
+==6680== Conditional jump or move depends on uninitialised value(s)
+==6680==    at 0x10BF28: pointnode_delete (pointset.c:342)
+==6680==    by 0x10BEFD: pointset_destroy (pointset.c:336)
+==6680==    by 0x109B73: test_add (pointset_unit.c:385)
+==6680==    by 0x109360: main (pointset_unit.c:112)
+==6680== 
+==6680== Conditional jump or move depends on uninitialised value(s)
+==6680==    at 0x10BF45: pointnode_delete (pointset.c:346)
+==6680==    by 0x10BEFD: pointset_destroy (pointset.c:336)
+==6680==    by 0x109B73: test_add (pointset_unit.c:385)
+==6680==    by 0x109360: main (pointset_unit.c:112)
+==6680== 
+==6680== Conditional jump or move depends on uninitialised value(s)
+==6680==    at 0x10BF62: pointnode_delete (pointset.c:350)
+==6680==    by 0x10BEFD: pointset_destroy (pointset.c:336)
+==6680==    by 0x109B73: test_add (pointset_unit.c:385)
+==6680==    by 0x109360: main (pointset_unit.c:112)
+==6680== 
+==6680== Conditional jump or move depends on uninitialised value(s)
+==6680==    at 0x10BF7F: pointnode_delete (pointset.c:354)
+==6680==    by 0x10BEFD: pointset_destroy (pointset.c:336)
+==6680==    by 0x109B73: test_add (pointset_unit.c:385)
+==6680==    by 0x109360: main (pointset_unit.c:112)
+==6680== 
