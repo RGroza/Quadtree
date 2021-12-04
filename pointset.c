@@ -1,11 +1,12 @@
+#include "pointset.h"
+
+#include <math.h>
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdlib.h>
 #include <string.h>
-#include <math.h>
 
 #include "point2d.h"
-#include "pointset.h"
 
 struct _pointset
 {
@@ -22,23 +23,25 @@ typedef struct _pointnode
     struct _pointnode *NE;
 } pointnode;
 
-
 pointset *pointset_create(const point2d *pts, size_t n);
 void pointset_recursive(pointnode *root, const point2d *pts, size_t n);
 size_t pointset_size(const pointset *t);
 bool pointset_add(pointset *t, const point2d *pt);
 bool pointset_contains(const pointset *t, const point2d *pt);
-void pointset_nearest_neighbor(const pointset *t, const point2d *pt, point2d *neighbor, double *d);
+void pointset_nearest_neighbor(const pointset *t, const point2d *pt,
+                               point2d *neighbor, double *d);
 point2d *pointset_k_nearest(const pointset *t, const point2d *pt, size_t k);
-void pointset_for_each(const pointset* t, void (*f)(const point2d *, void *), void *arg);
+void pointset_for_each(const pointset *t, void (*f)(const point2d *, void *),
+                       void *arg);
 void pointset_destroy(pointset *t);
 void pointnode_delete(pointnode *root);
 int compare_points(const void *p1, const void *p2);
 pointnode *find_path(pointnode *root, const point2d *pt);
-void recursive_search(const pointnode *root, void (*f)(const point2d *, void *), void *arg);
-void node_nearest_neighbor(pointnode *root, const point2d *pt, point2d* neighbor, double *d);
+void recursive_search(const pointnode *root, void (*f)(const point2d *, void *),
+                      void *arg);
+void node_nearest_neighbor(pointnode *root, const point2d *pt,
+                           point2d *neighbor, double *d);
 bool node_is_end(pointnode *node);
-
 
 pointset *pointset_create(const point2d *pts, size_t n)
 {
@@ -69,7 +72,6 @@ pointset *pointset_create(const point2d *pts, size_t n)
 
     return result;
 }
-
 
 void pointset_recursive(pointnode *root, const point2d *pts, size_t n)
 {
@@ -123,7 +125,6 @@ void pointset_recursive(pointnode *root, const point2d *pts, size_t n)
     }
     free(SW_list);
 
-
     point2d *NE_list = malloc(sizeof(point2d) * n / 2);
     size_t NE_size = 0;
     point2d *SE_list = malloc(sizeof(point2d) * n / 2);
@@ -175,12 +176,7 @@ void pointset_recursive(pointnode *root, const point2d *pts, size_t n)
     free(SE_list);
 }
 
-
-size_t pointset_size(const pointset *t)
-{
-    return t->size;
-}
-
+size_t pointset_size(const pointset *t) { return t->size; }
 
 bool pointset_add(pointset *t, const point2d *pt)
 {
@@ -253,7 +249,6 @@ bool pointset_add(pointset *t, const point2d *pt)
     return true;
 }
 
-
 bool pointset_contains(const pointset *t, const point2d *pt)
 {
     if (t->root->pt == NULL)
@@ -273,7 +268,6 @@ bool pointset_contains(const pointset *t, const point2d *pt)
 
     return true;
 }
-
 
 int compare_points(const void *p1, const void *p2)
 {
@@ -331,13 +325,11 @@ pointnode *find_path(pointnode *root, const point2d *pt)
     }
 }
 
-
 void pointset_destroy(pointset *t)
 {
     pointnode_delete(t->root);
     free(t);
 }
-
 
 void pointnode_delete(pointnode *root)
 {
@@ -360,14 +352,14 @@ void pointnode_delete(pointnode *root)
     free(root);
 }
 
-
-void pointset_for_each(const pointset* t, void (*f)(const point2d *, void *), void *arg)
+void pointset_for_each(const pointset *t, void (*f)(const point2d *, void *),
+                       void *arg)
 {
     recursive_search(t->root, f, arg);
 }
 
-
-void recursive_search(const pointnode *root, void (*f)(const point2d *, void *), void *arg)
+void recursive_search(const pointnode *root, void (*f)(const point2d *, void *),
+                      void *arg)
 {
     if (root->NW != NULL)
     {
@@ -391,8 +383,8 @@ void recursive_search(const pointnode *root, void (*f)(const point2d *, void *),
     }
 }
 
-
-void pointset_nearest_neighbor(const pointset *t, const point2d *pt, point2d *neighbor, double *d)
+void pointset_nearest_neighbor(const pointset *t, const point2d *pt,
+                               point2d *neighbor, double *d)
 {
     if (t->root != NULL && t->root->pt != NULL)
     {
@@ -401,7 +393,8 @@ void pointset_nearest_neighbor(const pointset *t, const point2d *pt, point2d *ne
     }
 }
 
-void node_nearest_neighbor(pointnode *root, const point2d *pt, point2d* neighbor, double *d)
+void node_nearest_neighbor(pointnode *root, const point2d *pt,
+                           point2d *neighbor, double *d)
 {
     if (root->NW != NULL)
     {
@@ -411,7 +404,8 @@ void node_nearest_neighbor(pointnode *root, const point2d *pt, point2d* neighbor
             if (dist < *d)
             {
                 *d = dist;
-                neighbor = root->NW->pt;
+                neighbor->x = root->NW->pt->x;
+                neighbor->y = root->NW->pt->y;
             }
         }
         else
@@ -439,7 +433,8 @@ void node_nearest_neighbor(pointnode *root, const point2d *pt, point2d* neighbor
             if (dist < *d)
             {
                 *d = dist;
-                neighbor = root->SW->pt;
+                neighbor->x = root->SW->pt->x;
+                neighbor->y = root->SW->pt->y;
             }
         }
         else
@@ -467,7 +462,8 @@ void node_nearest_neighbor(pointnode *root, const point2d *pt, point2d* neighbor
             if (dist < *d)
             {
                 *d = dist;
-                neighbor = root->SE->pt;
+                neighbor->x = root->SE->pt->x;
+                neighbor->y = root->SE->pt->y;
             }
         }
         else
@@ -495,7 +491,8 @@ void node_nearest_neighbor(pointnode *root, const point2d *pt, point2d* neighbor
             if (dist < *d)
             {
                 *d = dist;
-                neighbor = root->NE->pt;
+                neighbor->x = root->NE->pt->x;
+                neighbor->y = root->NE->pt->y;
             }
         }
         else
@@ -516,16 +513,15 @@ void node_nearest_neighbor(pointnode *root, const point2d *pt, point2d* neighbor
     }
 }
 
-
 bool node_is_end(pointnode *node)
 {
-    if (node->NW == NULL && node->SW == NULL && node->SE == NULL && node->NE == NULL)
+    if (node->NW == NULL && node->SW == NULL && node->SE == NULL &&
+        node->NE == NULL)
     {
         return true;
     }
     return false;
 }
-
 
 point2d *pointset_k_nearest(const pointset *t, const point2d *pt, size_t k)
 {
