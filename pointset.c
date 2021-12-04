@@ -47,6 +47,11 @@ pointset *pointset_create(const point2d *pts, size_t n)
 {
     pointset *result = calloc(1, sizeof(pointset));
     result->root = calloc(1, sizeof(pointnode));
+    result->root->NW = NULL;
+    result->root->SW = NULL;
+    result->root->SE = NULL;
+    result->root->NE = NULL;
+    result->root->pt = NULL;
 
     if (result == NULL || result->root == NULL)
     {
@@ -54,7 +59,7 @@ pointset *pointset_create(const point2d *pts, size_t n)
     }
 
     result->size = n;
-    if (pts == NULL && n == 0)
+    if (pts == NULL || n == 0)
     {
         return result;
     }
@@ -69,6 +74,8 @@ pointset *pointset_create(const point2d *pts, size_t n)
     result->root->pt->y = pts_cpy[n / 2].y;
 
     pointset_recursive(result->root, pts_cpy, n);
+
+    free(pts_cpy);
 
     return result;
 }
@@ -99,6 +106,10 @@ void pointset_recursive(pointnode *root, const point2d *pts, size_t n)
         NW_child->pt = malloc(sizeof(point2d));
         NW_child->pt->x = NW_list[NW_size / 2].x;
         NW_child->pt->y = NW_list[NW_size / 2].y;
+        NW_child->NW = NULL;
+        NW_child->SW = NULL;
+        NW_child->SE = NULL;
+        NW_child->NE = NULL;
 
         root->NW = NW_child;
 
@@ -115,6 +126,10 @@ void pointset_recursive(pointnode *root, const point2d *pts, size_t n)
         SW_child->pt = malloc(sizeof(point2d));
         SW_child->pt->x = SW_list[SW_size / 2].x;
         SW_child->pt->y = SW_list[SW_size / 2].y;
+        SW_child->NW = NULL;
+        SW_child->SW = NULL;
+        SW_child->SE = NULL;
+        SW_child->NE = NULL;
 
         root->SW = SW_child;
 
@@ -149,6 +164,10 @@ void pointset_recursive(pointnode *root, const point2d *pts, size_t n)
         NE_child->pt = malloc(sizeof(point2d));
         NE_child->pt->x = NE_list[NE_size / 2].x;
         NE_child->pt->y = NE_list[NE_size / 2].y;
+        NE_child->NW = NULL;
+        NE_child->SW = NULL;
+        NE_child->SE = NULL;
+        NE_child->NE = NULL;
 
         root->NE = NE_child;
 
@@ -165,6 +184,10 @@ void pointset_recursive(pointnode *root, const point2d *pts, size_t n)
         SE_child->pt = malloc(sizeof(point2d));
         SE_child->pt->x = SE_list[SE_size / 2].x;
         SE_child->pt->y = SE_list[SE_size / 2].y;
+        SE_child->NW = NULL;
+        SE_child->SW = NULL;
+        SE_child->SE = NULL;
+        SE_child->NE = NULL;
 
         root->SE = SE_child;
 
@@ -180,11 +203,6 @@ size_t pointset_size(const pointset *t) { return t->size; }
 
 bool pointset_add(pointset *t, const point2d *pt)
 {
-    if (pointset_contains(t, pt))
-    {
-        return false;
-    }
-
     if (t->root->pt == NULL)
     {
         t->root->pt = malloc(sizeof(point2d));
@@ -196,7 +214,14 @@ bool pointset_add(pointset *t, const point2d *pt)
         t->root->pt->x = pt->x;
         t->root->pt->y = pt->y;
 
+        t->size++;
+
         return true;
+    }
+
+    if (pointset_contains(t, pt))
+    {
+        return false;
     }
 
     pointnode *curr_node = t->root;
@@ -243,6 +268,10 @@ bool pointset_add(pointset *t, const point2d *pt)
     new_node->pt = malloc(sizeof(point2d));
     new_node->pt->x = pt->x;
     new_node->pt->y = pt->y;
+    new_node->NW = NULL;
+    new_node->SW = NULL;
+    new_node->SE = NULL;
+    new_node->NE = NULL;
 
     t->size++;
 
@@ -349,6 +378,7 @@ void pointnode_delete(pointnode *root)
     {
         pointnode_delete(root->NE);
     }
+    free(root->pt);
     free(root);
 }
 
