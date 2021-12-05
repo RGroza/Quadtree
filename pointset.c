@@ -27,6 +27,7 @@ typedef struct _pointnode
 
 pointset *pointset_create(const point2d *pts, size_t n);
 void pointset_recursive(pointnode *root, const point2d *pts, size_t n);
+void pointset_set_region(pointnode *node, point2d ll, point2d ur);
 size_t pointset_size(const pointset *t);
 bool pointset_add(pointset *t, const point2d *pt);
 bool pointset_contains(const pointset *t, const point2d *pt);
@@ -50,17 +51,24 @@ bool node_is_end(pointnode *node);
 pointset *pointset_create(const point2d *pts, size_t n)
 {
     pointset *result = calloc(1, sizeof(pointset));
+    if (result == NULL)
+    {
+        return NULL;
+    }
+
     result->root = calloc(1, sizeof(pointnode));
+    if (result->root == NULL)
+    {
+        return NULL;
+    }
+
     result->root->NW = NULL;
     result->root->SW = NULL;
     result->root->SE = NULL;
     result->root->NE = NULL;
     result->root->pt = NULL;
-
-    if (result == NULL || result->root == NULL)
-    {
-        return NULL;
-    }
+    result->root->region_ll = NULL;
+    result->root->region_ur = NULL;
 
     result->size = n;
     if (pts == NULL || n == 0)
@@ -76,6 +84,8 @@ pointset *pointset_create(const point2d *pts, size_t n)
     result->root->pt = malloc(sizeof(point2d));
     result->root->pt->x = pts_cpy[n / 2].x;
     result->root->pt->y = pts_cpy[n / 2].y;
+
+    pointset_set_region(result->root, (point2d){-INFINITY, -INFINITY}, (point2d){INFINITY, INFINITY});
 
     pointset_recursive(result->root, pts_cpy, n);
 
@@ -115,6 +125,9 @@ void pointset_recursive(pointnode *root, const point2d *pts, size_t n)
         NW_child->SE = NULL;
         NW_child->NE = NULL;
 
+        pointset_set_region(NW_child, (point2d){root->region_ll->x, root->pt->y},
+                            (point2d){root->pt->x, root->region_ur->y});
+
         root->NW = NW_child;
 
         if (NW_size > 1)
@@ -134,6 +147,8 @@ void pointset_recursive(pointnode *root, const point2d *pts, size_t n)
         SW_child->SW = NULL;
         SW_child->SE = NULL;
         SW_child->NE = NULL;
+
+        pointset_set_region(SW_child, *root->region_ll, *root->pt);
 
         root->SW = SW_child;
 
@@ -173,6 +188,8 @@ void pointset_recursive(pointnode *root, const point2d *pts, size_t n)
         NE_child->SE = NULL;
         NE_child->NE = NULL;
 
+        pointset_set_region(NE_child, *root->pt, *root->region_ur);
+
         root->NE = NE_child;
 
         if (NE_size > 1)
@@ -193,6 +210,8 @@ void pointset_recursive(pointnode *root, const point2d *pts, size_t n)
         SE_child->SE = NULL;
         SE_child->NE = NULL;
 
+        pointset_set_region(SE_child, *root->pt, (point2d){root->region_ur->x, root->region_ll->y});
+
         root->SE = SE_child;
 
         if (SE_size > 1)
@@ -201,6 +220,20 @@ void pointset_recursive(pointnode *root, const point2d *pts, size_t n)
         }
     }
     free(SE_list);
+}
+
+void pointset_set_region(pointnode *node, point2d ll, point2d ur)
+{
+    if (node != NULL)
+    {
+        node->region_ll = malloc(sizeof(point2d));
+        node->region_ll->x = ll.x;
+        node->region_ll->y = ll.y;
+
+        node->region_ur = malloc(sizeof(point2d));
+        node->region_ur->x = ur.x;
+        node->region_ur->y = ur.y;
+    }
 }
 
 size_t pointset_size(const pointset *t) { return t->size; }
@@ -243,11 +276,16 @@ bool pointset_add(pointset *t, const point2d *pt)
         {
             prev_node->NW = malloc(sizeof(pointnode));
             new_node = prev_node->NW;
+
+            pointset_set_region(new_node, (point2d){prev_node->region_ll->x, prev_node->pt->y},
+                                (point2d){prev_node->pt->x, prev_node->region_ur->y});
         }
         else
         {
             prev_node->SW = malloc(sizeof(pointnode));
             new_node = prev_node->SW;
+
+            pointset_set_region(new_node, *prev_node->region_ll, *prev_node->pt);
         }
     }
     else
@@ -256,11 +294,16 @@ bool pointset_add(pointset *t, const point2d *pt)
         {
             prev_node->NE = malloc(sizeof(pointnode));
             new_node = prev_node->NE;
+
+            pointset_set_region(new_node, *prev_node->pt, *prev_node->region_ur);
         }
         else
         {
             prev_node->SE = malloc(sizeof(pointnode));
             new_node = prev_node->SE;
+
+            pointset_set_region(new_node, *prev_node->pt,
+                                (point2d){prev_node->region_ur->x, prev_node->region_ll->y});
         }
     }
 
