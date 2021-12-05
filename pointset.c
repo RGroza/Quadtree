@@ -251,6 +251,8 @@ bool pointset_add(pointset *t, const point2d *pt)
         t->root->pt->x = pt->x;
         t->root->pt->y = pt->y;
 
+        pointset_set_region(t->root, (point2d){-INFINITY, -INFINITY}, (point2d){INFINITY, INFINITY});
+
         t->size++;
 
         return true;
@@ -426,6 +428,8 @@ void pointnode_delete(pointnode *root)
         pointnode_delete(root->NE);
     }
     free(root->pt);
+    free(root->region_ll);
+    free(root->region_ur);
     free(root);
 }
 
@@ -602,7 +606,7 @@ point2d *pointset_k_nearest(const pointset *t, const point2d *pt, size_t k)
     point2d nearest[k];
     size_t found = 0;
 
-    pqueue_enqueue(q, 0, t->root);
+    pqueue_enqueue(q, 0, t->root, 1);
     while (pqueue_size(q) != 0 && found < k)
     {
         size_t *item_ID = malloc(sizeof(size_t));
@@ -615,47 +619,23 @@ point2d *pointset_k_nearest(const pointset *t, const point2d *pt, size_t k)
         else
         {
             pointnode *node = (pointnode *)item;
-            pqueue_enqueue(q, point2d_distance(pt, node->pt), node->pt);
+            pqueue_enqueue(q, point2d_distance(pt, node->pt), node->pt, 0);
 
             if (node->NW != NULL)
             {
-                point2d *NW_ll = malloc(sizeof(point2d));
-                NW_ll->x = 0;
-                NW_ll->y = node->pt->y;
-                point2d *NW_ur = malloc(sizeof(point2d));
-                NW_ur->x = node->pt->x;
-                NW_ur->y = INFINITY;
-                pqueue_enqueue(q, point2d_distance_to_rectangle(pt, NW_ll, NW_ur), node->NW);
+                pqueue_enqueue(q, point2d_distance_to_rectangle(pt, node->NW->region_ll, node->NW->region_ur), node->NW, 1);
             }
             if (node->SW != NULL)
             {
-                point2d *SW_ll = malloc(sizeof(point2d));
-                SW_ll->x = 0;
-                SW_ll->y = 0;
-                point2d *SW_ur = malloc(sizeof(point2d));
-                SW_ur->x = node->pt->x;
-                SW_ur->y = node->pt->y;
-                pqueue_enqueue(q, point2d_distance_to_rectangle(pt, SW_ll, SW_ur), node->SW);
+                pqueue_enqueue(q, point2d_distance_to_rectangle(pt, node->SW->region_ll, node->SW->region_ur), node->SW, 1);
             }
             if (node->SE != NULL)
             {
-                point2d *SE_ll = malloc(sizeof(point2d));
-                SE_ll->x = node->pt->x;
-                SE_ll->y = 0;
-                point2d *SE_ur = malloc(sizeof(point2d));
-                SE_ur->x = INFINITY;
-                SE_ur->y = node->pt->y;
-                pqueue_enqueue(q, point2d_distance_to_rectangle(pt, SE_ll, SE_ur), node->SE);
+                pqueue_enqueue(q, point2d_distance_to_rectangle(pt, node->SE->region_ll, node->SE->region_ur), node->SE, 1);
             }
             if (node->NE != NULL)
             {
-                point2d *NE_ll = malloc(sizeof(point2d));
-                NE_ll->x = node->pt->x;
-                NE_ll->y = node->pt->y;
-                point2d *NE_ur = malloc(sizeof(point2d));
-                NE_ur->x = INFINITY;
-                NE_ur->y = INFINITY;
-                pqueue_enqueue(q, point2d_distance_to_rectangle(pt, NE_ll, NE_ur), node->NE);
+                pqueue_enqueue(q, point2d_distance_to_rectangle(pt, node->NE->region_ll, node->NE->region_ur), node->NE, 1);
             }
         }
     }

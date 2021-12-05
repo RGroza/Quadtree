@@ -1,13 +1,11 @@
 #ifndef __POINT2D_H__
 #define __POINT2D_H__
 
-
 typedef struct _point
 {
   double x;
   double y;
 } point2d;
-
 
 /**
  * Returns the Euclidean distance between two points.
@@ -17,7 +15,6 @@ typedef struct _point
  * @return the distance between those points
  */
 double point2d_distance(const point2d *p1, const point2d *p2);
-
 
 /**
  * Returns the minimum Euclidean distance between the given point and the
@@ -33,6 +30,5 @@ double point2d_distance(const point2d *p1, const point2d *p2);
  * lower_left and upper_right
  */
 double point2d_distance_to_rectangle(const point2d *pt, const point2d *lower_left, const point2d *upper_right);
-
 
 #endif

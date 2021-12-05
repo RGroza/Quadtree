@@ -105,7 +105,7 @@ void pqueue_embiggen(pqueue *q, size_t new_capacity)
   }
 }
 
-void *pqueue_dequeue(pqueue *q, double *pri, size_t *ID)
+void *pqueue_dequeue(pqueue *q, double *pri)
 {
   if (q == NULL || q->size == 0)
   {

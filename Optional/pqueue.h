@@ -48,7 +48,7 @@ bool pqueue_enqueue(pqueue *q, double pri, void *item);
  * @param pri a pointer to a double, or NULL
  * @return a pointer to the removed item
  */
-void *pqueue_dequeue(pqueue *q, double *pri, size_t *ID);
+void *pqueue_dequeue(pqueue *q, double *pri);
 
 /**
  * Destroys the given priority queue.  Al remaining items are passed

@@ -15,6 +15,7 @@ typedef struct _pqueue_entry
 {
   double priority;
   void *item;
+  size_t item_ID;
 } pqueue_entry;
 
 struct _pqueue
@@ -64,7 +65,7 @@ pqueue *pqueue_create()
 
 size_t pqueue_size(const pqueue *q) { return q != NULL ? q->size : 0; }
 
-bool pqueue_enqueue(pqueue *q, double pri, void *item)
+bool pqueue_enqueue(pqueue *q, double pri, void *item, size_t ID)
 {
   if (q == NULL || isnan(pri))
   {
@@ -80,6 +81,7 @@ bool pqueue_enqueue(pqueue *q, double pri, void *item)
   {
     q->entries[q->size].priority = pri;
     q->entries[q->size].item = item;
+    q->entries[q->size].item_ID = ID;
     q->size++;
 #ifdef COUNT
     q->enqueue_count++;
@@ -123,6 +125,7 @@ void *pqueue_dequeue(pqueue *q, double *pri, size_t *ID)
 
   // copy last item into place occupied by item with min priority
   pqueue_entry temp = q->entries[min_index];
+  *ID = temp.item_ID;
   q->entries[min_index] = q->entries[q->size - 1];
   q->size--;
 

@@ -37,7 +37,7 @@ size_t pqueue_size(const pqueue *q);
  * @param pri a number
  * @param item a pointer
  */
-bool pqueue_enqueue(pqueue *q, double pri, void *item);
+bool pqueue_enqueue(pqueue *q, double pri, void *item, size_t ID);
 
 /**
  * Removes the item with the lowest priority from the given queue and
