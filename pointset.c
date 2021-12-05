@@ -481,6 +481,8 @@ void pointset_nearest_neighbor(const pointset *t, const point2d *pt,
     if (pointset_contains(t, pt))
     {
         *d = 0;
+        neighbor->x = pt->x;
+        neighbor->y = pt->y;
         return;
     }
 
@@ -502,19 +504,19 @@ void node_nearest_neighbor(pointnode *root, const point2d *pt,
         }
         else
         {
-            point2d *NW_ll = malloc(sizeof(point2d));
-            NW_ll->x = 0;
-            NW_ll->y = root->pt->y;
-            point2d *NW_ur = malloc(sizeof(point2d));
-            NW_ur->x = root->pt->x;
-            NW_ur->y = INFINITY;
-            if (point2d_distance_to_rectangle(pt, NW_ll, NW_ur) < *d)
+            // point2d *NW_ll = malloc(sizeof(point2d));
+            // NW_ll->x = 0;
+            // NW_ll->y = root->pt->y;
+            // point2d *NW_ur = malloc(sizeof(point2d));
+            // NW_ur->x = root->pt->x;
+            // NW_ur->y = INFINITY;
+            if (point2d_distance_to_rectangle(pt, root->NW->region_ll, root->NW->region_ur) < *d)
             {
                 node_nearest_neighbor(root->NW, pt, neighbor, d);
                 check_distance(root, pt, neighbor, d);
             }
-            free(NW_ll);
-            free(NW_ur);
+            // free(NW_ll);
+            // free(NW_ur);
         }
     }
 
@@ -526,19 +528,19 @@ void node_nearest_neighbor(pointnode *root, const point2d *pt,
         }
         else
         {
-            point2d *SW_ll = malloc(sizeof(point2d));
-            SW_ll->x = 0;
-            SW_ll->y = 0;
-            point2d *SW_ur = malloc(sizeof(point2d));
-            SW_ur->x = root->pt->x;
-            SW_ur->y = root->pt->y;
-            if (point2d_distance_to_rectangle(pt, SW_ll, SW_ur) < *d)
+            // point2d *SW_ll = malloc(sizeof(point2d));
+            // SW_ll->x = 0;
+            // SW_ll->y = 0;
+            // point2d *SW_ur = malloc(sizeof(point2d));
+            // SW_ur->x = root->pt->x;
+            // SW_ur->y = root->pt->y;
+            if (point2d_distance_to_rectangle(pt, root->SW->region_ll, root->SW->region_ur) < *d)
             {
                 node_nearest_neighbor(root->SW, pt, neighbor, d);
                 check_distance(root, pt, neighbor, d);
             }
-            free(SW_ll);
-            free(SW_ur);
+            // free(SW_ll);
+            // free(SW_ur);
         }
     }
 
@@ -550,19 +552,19 @@ void node_nearest_neighbor(pointnode *root, const point2d *pt,
         }
         else
         {
-            point2d *SE_ll = malloc(sizeof(point2d));
-            SE_ll->x = root->pt->x;
-            SE_ll->y = 0;
-            point2d *SE_ur = malloc(sizeof(point2d));
-            SE_ur->x = INFINITY;
-            SE_ur->y = root->pt->y;
-            if (point2d_distance_to_rectangle(pt, SE_ll, SE_ur) < *d)
+            // point2d *SE_ll = malloc(sizeof(point2d));
+            // SE_ll->x = root->pt->x;
+            // SE_ll->y = 0;
+            // point2d *SE_ur = malloc(sizeof(point2d));
+            // SE_ur->x = INFINITY;
+            // SE_ur->y = root->pt->y;
+            if (point2d_distance_to_rectangle(pt, root->SE->region_ll, root->SE->region_ur) < *d)
             {
                 node_nearest_neighbor(root->SE, pt, neighbor, d);
                 check_distance(root, pt, neighbor, d);
             }
-            free(SE_ll);
-            free(SE_ur);
+            // free(SE_ll);
+            // free(SE_ur);
         }
     }
 
@@ -574,19 +576,19 @@ void node_nearest_neighbor(pointnode *root, const point2d *pt,
         }
         else
         {
-            point2d *NE_ll = malloc(sizeof(point2d));
-            NE_ll->x = root->pt->x;
-            NE_ll->y = root->pt->y;
-            point2d *NE_ur = malloc(sizeof(point2d));
-            NE_ur->x = INFINITY;
-            NE_ur->y = INFINITY;
-            if (point2d_distance_to_rectangle(pt, NE_ll, NE_ur) < *d)
+            // point2d *NE_ll = malloc(sizeof(point2d));
+            // NE_ll->x = root->pt->x;
+            // NE_ll->y = root->pt->y;
+            // point2d *NE_ur = malloc(sizeof(point2d));
+            // NE_ur->x = INFINITY;
+            // NE_ur->y = INFINITY;
+            if (point2d_distance_to_rectangle(pt, root->NE->region_ll, root->NE->region_ur) < *d)
             {
                 node_nearest_neighbor(root->NE, pt, neighbor, d);
                 check_distance(root, pt, neighbor, d);
             }
-            free(NE_ll);
-            free(NE_ur);
+            // free(NE_ll);
+            // free(NE_ur);
         }
     }
 }
