@@ -87,12 +87,12 @@ pointset *pointset_create(const point2d *pts, size_t n)
 
     pointset_set_region(result->root, (point2d){-INFINITY, -INFINITY}, (point2d){INFINITY, INFINITY});
 
-    pointset_recursive(result->root, pts_cpy, n);
+    // pointset_recursive(result->root, pts_cpy, n);
 
-    // for (int i = 0; i < n; i++)
-    // {
-    //     pointset_add(result, &pts_cpy[i]);
-    // }
+    for (int i = 0; i < n; i++)
+    {
+        pointset_add(result, &pts_cpy[i]);
+    }
 
     free(pts_cpy);
 
@@ -215,7 +215,7 @@ void pointset_recursive(pointnode *root, const point2d *pts, size_t n)
         SE_child->SE = NULL;
         SE_child->NE = NULL;
 
-        pointset_set_region(SE_child, *root->pt, (point2d){root->region_ur->x, root->region_ll->y});
+        pointset_set_region(SE_child, (point2d){root->pt->x, root->region_ll->y}, (point2d){root->region_ur->x, root->pt->y});
 
         root->SE = SE_child;
 
@@ -309,8 +309,7 @@ bool pointset_add(pointset *t, const point2d *pt)
             prev_node->SE = malloc(sizeof(pointnode));
             new_node = prev_node->SE;
 
-            pointset_set_region(new_node, *prev_node->pt,
-                                (point2d){prev_node->region_ur->x, prev_node->region_ll->y});
+            pointset_set_region(new_node, (point2d){prev_node->pt->x, prev_node->region_ll->y}, (point2d){prev_node->region_ur->x, prev_node->pt->y});
         }
     }
 
