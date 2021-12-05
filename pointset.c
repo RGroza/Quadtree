@@ -87,12 +87,12 @@ pointset *pointset_create(const point2d *pts, size_t n)
 
     pointset_set_region(result->root, (point2d){-INFINITY, -INFINITY}, (point2d){INFINITY, INFINITY});
 
-    // pointset_recursive(result->root, pts_cpy, n);
+    pointset_recursive(result->root, pts_cpy, n);
 
-    for (int i = 0; i < n; i++)
-    {
-        pointset_add(result, &pts_cpy[i]);
-    }
+    // for (int i = 0; i < n; i++)
+    // {
+    //     pointset_add(result, &pts_cpy[i]);
+    // }
 
     free(pts_cpy);
 
@@ -475,7 +475,15 @@ void pointset_nearest_neighbor(const pointset *t, const point2d *pt,
     if (t->size < 1)
     {
         *d = INFINITY;
+        return;
     }
+
+    if (pointset_contains(t, pt))
+    {
+        *d = 0;
+        return;
+    }
+
     if (t->root != NULL && t->root->pt != NULL)
     {
         *d = point2d_distance(pt, t->root->pt);
