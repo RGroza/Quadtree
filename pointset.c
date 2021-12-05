@@ -87,7 +87,12 @@ pointset *pointset_create(const point2d *pts, size_t n)
 
     pointset_set_region(result->root, (point2d){-INFINITY, -INFINITY}, (point2d){INFINITY, INFINITY});
 
-    pointset_recursive(result->root, pts_cpy, n);
+    // pointset_recursive(result->root, pts_cpy, n);
+
+    for (int i = n; i < n; i++)
+    {
+        pointset_add(result, &pts[i]);
+    }
 
     free(pts_cpy);
 
