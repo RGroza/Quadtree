@@ -89,9 +89,9 @@ pointset *pointset_create(const point2d *pts, size_t n)
 
     // pointset_recursive(result->root, pts_cpy, n);
 
-    for (int i = n; i < n; i++)
+    for (int i = 0; i < n; i++)
     {
-        pointset_add(result, &pts[i]);
+        pointset_add(result, &pts_cpy[i]);
     }
 
     free(pts_cpy);
