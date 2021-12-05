@@ -31,6 +31,7 @@ void pointset_set_region(pointnode *node, point2d ll, point2d ur);
 size_t pointset_size(const pointset *t);
 bool pointset_add(pointset *t, const point2d *pt);
 bool pointset_contains(const pointset *t, const point2d *pt);
+pointnode *pointset_find_node(const pointset *t, const point2d *pt);
 void pointset_nearest_neighbor(const pointset *t, const point2d *pt,
                                point2d *neighbor, double *d);
 point2d *pointset_k_nearest(const pointset *t, const point2d *pt, size_t k);
@@ -80,14 +81,6 @@ pointset *pointset_create(const point2d *pts, size_t n)
     memcpy(pts_cpy, pts, sizeof(point2d) * n);
 
     qsort(pts_cpy, n, sizeof(point2d), compare_points);
-
-    result->root->pt = malloc(sizeof(point2d));
-    result->root->pt->x = pts_cpy[n / 2].x;
-    result->root->pt->y = pts_cpy[n / 2].y;
-
-    pointset_set_region(result->root, (point2d){-INFINITY, -INFINITY}, (point2d){INFINITY, INFINITY});
-
-    // pointset_recursive(result->root, pts_cpy, n);
 
     for (int i = 0; i < n; i++)
     {
@@ -263,68 +256,61 @@ bool pointset_add(pointset *t, const point2d *pt)
         return true;
     }
 
-    if (pointset_contains(t, pt))
+    pointnode *parent = pointset_find_node(t, pt);
+    if (parent->pt->x == pt->x && parent->pt->y == pt->y)
     {
         return false;
     }
 
-    pointnode *curr_node = t->root;
-    pointnode *prev_node;
-    while (curr_node != NULL)
+    pointnode *child;
+    if (pt->x < parent->pt->x)
     {
-        prev_node = curr_node;
-        curr_node = find_path(curr_node, pt);
-    }
-
-    pointnode *new_node;
-    if (pt->x < prev_node->pt->x)
-    {
-        if (pt->y > prev_node->pt->y)
+        if (pt->y > parent->pt->y)
         {
-            prev_node->NW = malloc(sizeof(pointnode));
-            new_node = prev_node->NW;
+            parent->NW = malloc(sizeof(pointnode));
+            child = parent->NW;
 
-            pointset_set_region(new_node, (point2d){prev_node->region_ll->x, prev_node->pt->y},
-                                (point2d){prev_node->pt->x, prev_node->region_ur->y});
+            pointset_set_region(child, (point2d){parent->region_ll->x, parent->pt->y},
+                                (point2d){parent->pt->x, parent->region_ur->y});
         }
         else
         {
-            prev_node->SW = malloc(sizeof(pointnode));
-            new_node = prev_node->SW;
+            parent->SW = malloc(sizeof(pointnode));
+            child = parent->SW;
 
-            pointset_set_region(new_node, *prev_node->region_ll, *prev_node->pt);
+            pointset_set_region(child, *parent->region_ll, *parent->pt);
         }
     }
     else
     {
-        if (pt->y > prev_node->pt->y)
+        if (pt->y > parent->pt->y)
         {
-            prev_node->NE = malloc(sizeof(pointnode));
-            new_node = prev_node->NE;
+            parent->NE = malloc(sizeof(pointnode));
+            child = parent->NE;
 
-            pointset_set_region(new_node, *prev_node->pt, *prev_node->region_ur);
+            pointset_set_region(child, *parent->pt, *parent->region_ur);
         }
         else
         {
-            prev_node->SE = malloc(sizeof(pointnode));
-            new_node = prev_node->SE;
+            parent->SE = malloc(sizeof(pointnode));
+            child = parent->SE;
 
-            pointset_set_region(new_node, (point2d){prev_node->pt->x, prev_node->region_ll->y}, (point2d){prev_node->region_ur->x, prev_node->pt->y});
+            pointset_set_region(child, (point2d){parent->pt->x, parent->region_ll->y}, (point2d){parent->region_ur->x, parent->pt->y});
         }
     }
 
-    if (new_node == NULL)
+    if (child == NULL)
     {
         return false;
     }
 
-    new_node->pt = malloc(sizeof(point2d));
-    new_node->pt->x = pt->x;
-    new_node->pt->y = pt->y;
-    new_node->NW = NULL;
-    new_node->SW = NULL;
-    new_node->SE = NULL;
-    new_node->NE = NULL;
+    child->pt = malloc(sizeof(point2d));
+    child->pt->x = pt->x;
+    child->pt->y = pt->y;
+    child->NW = NULL;
+    child->SW = NULL;
+    child->SE = NULL;
+    child->NE = NULL;
 
     t->size++;
 
@@ -349,6 +335,30 @@ bool pointset_contains(const pointset *t, const point2d *pt)
     }
 
     return true;
+}
+
+pointnode *pointset_find_node(const pointset *t, const point2d *pt)
+{
+    if (t->root->pt == NULL)
+    {
+        return NULL;
+    }
+
+    pointnode *curr_node = t->root;
+    pointnode *prev_node = curr_node;
+    while (curr_node != NULL && (curr_node->pt->x != pt->x || curr_node->pt->y != pt->y))
+    {
+        prev_node = curr_node;
+        curr_node = find_path(curr_node, pt);
+    }
+
+    // Found node that contains same point as pt
+    if (curr_node != NULL)
+    {
+        return curr_node;
+    }
+    // Otherwise, return the leaf node
+    return prev_node;
 }
 
 int compare_points(const void *p1, const void *p2)
@@ -415,21 +425,14 @@ void pointset_destroy(pointset *t)
 
 void pointnode_delete(pointnode *root)
 {
-    if (root->NW != NULL)
+    pointnode *children[4] = {root->NW, root->SW, root->SE, root->NE};
+
+    for (int i = 0; i < 4; i++)
     {
-        pointnode_delete(root->NW);
-    }
-    if (root->SW != NULL)
-    {
-        pointnode_delete(root->SW);
-    }
-    if (root->SE != NULL)
-    {
-        pointnode_delete(root->SE);
-    }
-    if (root->NE != NULL)
-    {
-        pointnode_delete(root->NE);
+        if (children[i] != NULL)
+        {
+            pointnode_delete(children[i]);
+        }
     }
     free(root->pt);
     free(root->region_ll);
@@ -446,21 +449,14 @@ void pointset_for_each(const pointset *t, void (*f)(const point2d *, void *),
 void recursive_search(const pointnode *root, void (*f)(const point2d *, void *),
                       void *arg)
 {
-    if (root->NW != NULL)
+    pointnode *children[4] = {root->NW, root->SW, root->SE, root->NE};
+
+    for (int i = 0; i < 4; i++)
     {
-        recursive_search(root->NW, f, arg);
-    }
-    if (root->SW != NULL)
-    {
-        recursive_search(root->SW, f, arg);
-    }
-    if (root->SE != NULL)
-    {
-        recursive_search(root->SE, f, arg);
-    }
-    if (root->NE != NULL)
-    {
-        recursive_search(root->NE, f, arg);
+        if (children[i] != NULL)
+        {
+            recursive_search(children[i], f, arg);
+        }
     }
     if (root->pt != NULL)
     {
@@ -495,99 +491,24 @@ void pointset_nearest_neighbor(const pointset *t, const point2d *pt,
 void node_nearest_neighbor(pointnode *root, const point2d *pt,
                            point2d *neighbor, double *d)
 {
-    if (root->NW != NULL)
-    {
-        if (node_is_end(root->NW) && root->NW->pt != NULL)
-        {
-            check_distance(root->NW, pt, neighbor, d);
-        }
-        else
-        {
-            // point2d *NW_ll = malloc(sizeof(point2d));
-            // NW_ll->x = 0;
-            // NW_ll->y = root->pt->y;
-            // point2d *NW_ur = malloc(sizeof(point2d));
-            // NW_ur->x = root->pt->x;
-            // NW_ur->y = INFINITY;
-            if (point2d_distance_to_rectangle(pt, root->NW->region_ll, root->NW->region_ur) < *d)
-            {
-                node_nearest_neighbor(root->NW, pt, neighbor, d);
-                check_distance(root, pt, neighbor, d);
-            }
-            // free(NW_ll);
-            // free(NW_ur);
-        }
-    }
+    pointnode *children[4] = {root->NW, root->SW, root->SE, root->NE};
 
-    if (root->SW != NULL)
+    for (int i = 0; i < 4; i++)
     {
-        if (node_is_end(root->SW) && root->SW->pt != NULL)
+        if (children[i] != NULL)
         {
-            check_distance(root->SW, pt, neighbor, d);
-        }
-        else
-        {
-            // point2d *SW_ll = malloc(sizeof(point2d));
-            // SW_ll->x = 0;
-            // SW_ll->y = 0;
-            // point2d *SW_ur = malloc(sizeof(point2d));
-            // SW_ur->x = root->pt->x;
-            // SW_ur->y = root->pt->y;
-            if (point2d_distance_to_rectangle(pt, root->SW->region_ll, root->SW->region_ur) < *d)
+            if (node_is_end(children[i]) && children[i]->pt != NULL)
             {
-                node_nearest_neighbor(root->SW, pt, neighbor, d);
-                check_distance(root, pt, neighbor, d);
+                check_distance(children[i], pt, neighbor, d);
             }
-            // free(SW_ll);
-            // free(SW_ur);
-        }
-    }
-
-    if (root->SE != NULL)
-    {
-        if (node_is_end(root->SE) && root->SE->pt != NULL)
-        {
-            check_distance(root->SE, pt, neighbor, d);
-        }
-        else
-        {
-            // point2d *SE_ll = malloc(sizeof(point2d));
-            // SE_ll->x = root->pt->x;
-            // SE_ll->y = 0;
-            // point2d *SE_ur = malloc(sizeof(point2d));
-            // SE_ur->x = INFINITY;
-            // SE_ur->y = root->pt->y;
-            if (point2d_distance_to_rectangle(pt, root->SE->region_ll, root->SE->region_ur) < *d)
+            else
             {
-                node_nearest_neighbor(root->SE, pt, neighbor, d);
-                check_distance(root, pt, neighbor, d);
+                if (point2d_distance_to_rectangle(pt, children[i]->region_ll, children[i]->region_ur) < *d)
+                {
+                    node_nearest_neighbor(children[i], pt, neighbor, d);
+                    check_distance(root, pt, neighbor, d);
+                }
             }
-            // free(SE_ll);
-            // free(SE_ur);
-        }
-    }
-
-    if (root->NE != NULL)
-    {
-        if (node_is_end(root->NE) && root->NE->pt != NULL)
-        {
-            check_distance(root->NE, pt, neighbor, d);
-        }
-        else
-        {
-            // point2d *NE_ll = malloc(sizeof(point2d));
-            // NE_ll->x = root->pt->x;
-            // NE_ll->y = root->pt->y;
-            // point2d *NE_ur = malloc(sizeof(point2d));
-            // NE_ur->x = INFINITY;
-            // NE_ur->y = INFINITY;
-            if (point2d_distance_to_rectangle(pt, root->NE->region_ll, root->NE->region_ur) < *d)
-            {
-                node_nearest_neighbor(root->NE, pt, neighbor, d);
-                check_distance(root, pt, neighbor, d);
-            }
-            // free(NE_ll);
-            // free(NE_ur);
         }
     }
 }
