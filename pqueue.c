@@ -1,8 +1,8 @@
 #include "pqueue.h"
 
-#include <stdlib.h>
-#include <stddef.h>
 #include <math.h>
+#include <stddef.h>
+#include <stdlib.h>
 
 // leave this commented out
 //#define COUNT
@@ -62,10 +62,7 @@ pqueue *pqueue_create()
   return q;
 }
 
-size_t pqueue_size(const pqueue *q)
-{
-  return q != NULL ? q->size : 0;
-}
+size_t pqueue_size(const pqueue *q) { return q != NULL ? q->size : 0; }
 
 bool pqueue_enqueue(pqueue *q, double pri, void *item)
 {
@@ -164,7 +161,8 @@ void pqueue_destroy(pqueue *q, void (*f)(void *))
     free(q->entries);
 
 #ifdef COUNT
-    fprintf(stderr, "%zu enqueues, %zu dequeues\n", q->enqueue_count, q->dequeue_count);
+    fprintf(stderr, "%zu enqueues, %zu dequeues\n", q->enqueue_count,
+            q->dequeue_count);
 #endif
 
     // free the meta-data
