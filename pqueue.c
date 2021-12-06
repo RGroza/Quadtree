@@ -100,7 +100,7 @@ int get_right_child(pqueue *q, int i)
     return -1;
 }
 
-int parent(pqueue *q, int i)
+int get_parent(pqueue *q, int i)
 {
     if (i >= 0 && i / 2 <= q->capacity)
     {
@@ -129,10 +129,13 @@ bool pqueue_enqueue(pqueue *q, double pri, void *item, size_t ID)
         q->size++;
 
         // Check if parent entry needs to be swapped with new child to maintain increasing order of priority
-        int parent_i = parent(q, q->size - 1);
-        if (q->entries[q->size - 1].priority < q->entries[parent_i].priority)
+        int i = q->size - 1;
+        int parent_i = get_parent(q, i);
+        while (i >= 0 && q->entries[i].priority < q->entries[parent_i].priority)
         {
-            swap_entries(&q->entries[q->size - 1], &q->entries[parent_i]);
+            swap_entries(&q->entries[i], &q->entries[parent_i]);
+            i = get_parent(q, i);
+            parent_i = get_parent(q, i);
         }
         return true;
     }
