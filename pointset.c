@@ -538,7 +538,7 @@ bool node_is_end(pointnode *node)
 point2d *pointset_k_nearest(const pointset *t, const point2d *pt, size_t k)
 {
     pqueue *q = pqueue_create();
-    point2d nearest[k];
+    point2d *nearest = malloc(sizeof(point2d) * k);
     size_t found = 0;
 
     pqueue_enqueue(q, 0, t->root, 1);
@@ -546,32 +546,28 @@ point2d *pointset_k_nearest(const pointset *t, const point2d *pt, size_t k)
     {
         size_t *item_ID = malloc(sizeof(size_t));
         void *item = pqueue_dequeue(q, NULL, item_ID);
-        if (item_ID == 0)
+        if (*item_ID == 0)
         {
-            nearest[found] = *(point2d *)item;
+            point2d new_pt = *(point2d *)item;
+            nearest[found] = new_pt;
             found++;
         }
         else
         {
             pointnode *node = (pointnode *)item;
-            pqueue_enqueue(q, point2d_distance(pt, node->pt), node->pt, 0);
+            double dist = point2d_distance(pt, node->pt);
+            pqueue_enqueue(q, dist, node->pt, 0);
 
-            if (node->NW != NULL)
+            pointnode *children[4] = {node->NW, node->SW, node->SE, node->NE};
+            for (int i = 0; i < 4; i++)
             {
-                pqueue_enqueue(q, point2d_distance_to_rectangle(pt, node->NW->region_ll, node->NW->region_ur), node->NW, 1);
-            }
-            if (node->SW != NULL)
-            {
-                pqueue_enqueue(q, point2d_distance_to_rectangle(pt, node->SW->region_ll, node->SW->region_ur), node->SW, 1);
-            }
-            if (node->SE != NULL)
-            {
-                pqueue_enqueue(q, point2d_distance_to_rectangle(pt, node->SE->region_ll, node->SE->region_ur), node->SE, 1);
-            }
-            if (node->NE != NULL)
-            {
-                pqueue_enqueue(q, point2d_distance_to_rectangle(pt, node->NE->region_ll, node->NE->region_ur), node->NE, 1);
+                if (children[i] != NULL)
+                {
+                    pqueue_enqueue(q, point2d_distance_to_rectangle(pt, children[i]->region_ll, children[i]->region_ur), children[i], 1);
+                }
             }
         }
     }
+
+    return nearest;
 }
