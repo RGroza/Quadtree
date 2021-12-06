@@ -544,9 +544,9 @@ point2d *pointset_k_nearest(const pointset *t, const point2d *pt, size_t k)
     pqueue_enqueue(q, 0, t->root, 1);
     while (pqueue_size(q) != 0 && found < k)
     {
-        size_t *item_ID = malloc(sizeof(size_t));
-        void *item = pqueue_dequeue(q, NULL, item_ID);
-        if (*item_ID == 0)
+        size_t *ID = malloc(sizeof(size_t));
+        void *item = pqueue_dequeue(q, NULL, ID);
+        if (*ID == 0)
         {
             point2d new_pt = *(point2d *)item;
             nearest[found] = new_pt;
@@ -567,7 +567,9 @@ point2d *pointset_k_nearest(const pointset *t, const point2d *pt, size_t k)
                 }
             }
         }
+        free(ID);
     }
+    pqueue_destroy(q, NULL);
 
     return nearest;
 }
