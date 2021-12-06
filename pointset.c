@@ -30,6 +30,7 @@ void pointset_recursive(pointnode *root, const point2d *pts, size_t n);
 void pointset_set_region(pointnode *node, point2d ll, point2d ur);
 size_t pointset_size(const pointset *t);
 bool pointset_add(pointset *t, const point2d *pt);
+
 bool pointset_contains(const pointset *t, const point2d *pt);
 pointnode *pointset_find_node(const pointset *t, const point2d *pt);
 void pointset_nearest_neighbor(const pointset *t, const point2d *pt,
@@ -48,6 +49,16 @@ void node_nearest_neighbor(pointnode *root, const point2d *pt,
 void check_distance(pointnode *node, const point2d *pt, point2d *neighbor,
                     double *d);
 bool node_is_end(pointnode *node);
+
+pointnode *create_new_node(const point2d *pt);
+bool is_NW(pointnode *curr, const point2d *pt);
+bool is_SW(pointnode *curr, const point2d *pt);
+bool is_SE(pointnode *curr, const point2d *pt);
+bool is_NE(pointnode *curr, const point2d *pt);
+void set_NW_region(pointnode *parent, pointnode *child);
+void set_SW_region(pointnode *parent, pointnode *child);
+void set_SE_region(pointnode *parent, pointnode *child);
+void set_NE_region(pointnode *parent, pointnode *child);
 
 pointset *pointset_create(const point2d *pts, size_t n)
 {
@@ -82,7 +93,13 @@ pointset *pointset_create(const point2d *pts, size_t n)
 
     qsort(pts_cpy, n, sizeof(point2d), compare_points);
 
-    for (int i = 0; i < n; i++)
+    pointset_add(result, &pts_cpy[n / 2]);
+
+    for (int i = 0; i < n / 2; i++)
+    {
+        pointset_add(result, &pts_cpy[i]);
+    }
+    for (int i = n / 2 + 1; i < n; i++)
     {
         pointset_add(result, &pts_cpy[i]);
     }
@@ -256,6 +273,12 @@ bool pointset_add(pointset *t, const point2d *pt)
         return true;
     }
 
+    if (pointset_contains(t, pt))
+    {
+        return false;
+    }
+
+    /*
     pointnode *parent = pointset_find_node(t, pt);
     if (parent->pt->x == pt->x && parent->pt->y == pt->y)
     {
@@ -298,23 +321,264 @@ bool pointset_add(pointset *t, const point2d *pt)
             pointset_set_region(child, (point2d){parent->pt->x, parent->region_ll->y}, (point2d){parent->region_ur->x, parent->pt->y});
         }
     }
+*/
 
-    if (child == NULL)
+    pointnode *curr = t->root;
+    pointnode *new_node = NULL;
+    bool point_injected = false;
+    while (curr->pt->x != pt->x || curr->pt->y != pt->y)
+    {
+        if (is_NW(curr, pt))
+        {
+            if (curr->NW != NULL && is_SE(curr->NW, pt))
+            {
+                new_node = create_new_node(pt);
+
+                set_NW_region(curr, new_node);
+
+                pointnode *temp = curr->NW;
+                curr->NW = new_node;
+                new_node->NW = temp;
+
+                if (temp->SW != NULL && is_SW(new_node, temp->SW->pt))
+                {
+                    new_node->SW = temp->SW;
+                    set_SW_region(new_node, new_node->SW);
+                    temp->SW = NULL;
+                }
+                if (temp->SE != NULL && is_SE(new_node, temp->SE->pt))
+                {
+                    new_node->SE = temp->SE;
+                    set_SE_region(new_node, new_node->SE);
+                    temp->SE = NULL;
+                }
+                if (temp->NE != NULL && is_NE(new_node, temp->NE->pt))
+                {
+                    new_node->NE = temp->NE;
+                    set_NE_region(new_node, new_node->NE);
+                    temp->NE = NULL;
+                }
+                point_injected = true;
+                break;
+            }
+
+            if (curr->NW != NULL)
+            {
+                curr = curr->NW;
+            }
+            else
+            {
+                new_node = create_new_node(pt);
+                set_NW_region(curr, new_node);
+                curr->NW = new_node;
+                break;
+            }
+        }
+        else if (is_SW(curr, pt))
+        {
+            if (curr->SW != NULL && is_NE(curr->SW, pt))
+            {
+                new_node = create_new_node(pt);
+
+                set_SW_region(curr, new_node);
+
+                pointnode *temp = curr->SW;
+                curr->SW = new_node;
+                new_node->SW = temp;
+
+                if (temp->SE != NULL && is_SE(new_node, temp->SE->pt))
+                {
+                    new_node->SE = temp->SE;
+                    set_SE_region(new_node, new_node->SE);
+                    temp->SE = NULL;
+                }
+                if (temp->NE != NULL && is_NE(new_node, temp->NE->pt))
+                {
+                    new_node->NE = temp->NE;
+                    set_NE_region(new_node, new_node->NE);
+                    temp->NE = NULL;
+                }
+                if (temp->NW != NULL && is_NW(new_node, temp->NW->pt))
+                {
+                    new_node->NW = temp->NW;
+                    set_NW_region(new_node, new_node->NW);
+                    temp->NW = NULL;
+                }
+                point_injected = true;
+                break;
+            }
+
+            if (curr->SW != NULL)
+            {
+                curr = curr->SW;
+            }
+            else
+            {
+                new_node = create_new_node(pt);
+                set_SW_region(curr, new_node);
+                curr->SW = new_node;
+                break;
+            }
+        }
+        else if (is_SE(curr, pt))
+        {
+            if (curr->SE != NULL && is_NW(curr->SE, pt))
+            {
+                new_node = create_new_node(pt);
+
+                set_SE_region(curr, new_node);
+
+                pointnode *temp = curr->SE;
+                curr->SE = new_node;
+                new_node->SE = temp;
+
+                if (temp->NE != NULL && is_NE(new_node, temp->NE->pt))
+                {
+                    new_node->NE = temp->NE;
+                    set_NE_region(new_node, new_node->NE);
+                    temp->NE = NULL;
+                }
+                if (temp->NW != NULL && is_NW(new_node, temp->NW->pt))
+                {
+                    new_node->NW = temp->NW;
+                    set_NW_region(new_node, new_node->NW);
+                    temp->NW = NULL;
+                }
+                if (temp->SW != NULL && is_SW(new_node, temp->SW->pt))
+                {
+                    new_node->SW = temp->SW;
+                    set_SW_region(new_node, new_node->SW);
+                    temp->SW = NULL;
+                }
+                point_injected = true;
+                break;
+            }
+
+            if (curr->SE != NULL)
+            {
+                curr = curr->SE;
+            }
+            else
+            {
+                new_node = create_new_node(pt);
+                set_SE_region(curr, new_node);
+                curr->SE = new_node;
+                break;
+            }
+        }
+        else
+        {
+            if (curr->NE != NULL && is_SW(curr->NE, pt))
+            {
+                new_node = create_new_node(pt);
+
+                set_NE_region(curr, new_node);
+
+                pointnode *temp = curr->NE;
+                curr->NE = new_node;
+                new_node->NE = temp;
+
+                if (temp->NW != NULL && is_NW(new_node, temp->NW->pt))
+                {
+                    new_node->NW = temp->NW;
+                    set_NW_region(new_node, new_node->NW);
+                    temp->NW = NULL;
+                }
+                if (temp->SW != NULL && is_SW(new_node, temp->SW->pt))
+                {
+                    new_node->SW = temp->SW;
+                    set_SW_region(new_node, new_node->SW);
+                    temp->SW = NULL;
+                }
+                if (temp->SE != NULL && is_SE(new_node, temp->SE->pt))
+                {
+                    new_node->SE = temp->SE;
+                    set_NE_region(new_node, new_node->NE);
+                    temp->SE = NULL;
+                }
+                point_injected = true;
+                break;
+            }
+
+            if (curr->NE != NULL)
+            {
+                curr = curr->NE;
+            }
+            else
+            {
+                new_node = create_new_node(pt);
+                set_NE_region(curr, new_node);
+                curr->NE = new_node;
+                break;
+            }
+        }
+    }
+
+    if (new_node == NULL)
     {
         return false;
     }
 
-    child->pt = malloc(sizeof(point2d));
-    child->pt->x = pt->x;
-    child->pt->y = pt->y;
-    child->NW = NULL;
-    child->SW = NULL;
-    child->SE = NULL;
-    child->NE = NULL;
-
     t->size++;
 
     return true;
+}
+
+pointnode *create_new_node(const point2d *pt)
+{
+    pointnode *new = malloc(sizeof(pointnode));
+    new->pt = malloc(sizeof(point2d));
+    new->pt->x = pt->x;
+    new->pt->y = pt->y;
+    new->NW = NULL;
+    new->SW = NULL;
+    new->SE = NULL;
+    new->NE = NULL;
+    new->region_ll = NULL;
+    new->region_ur = NULL;
+
+    return new;
+}
+
+bool is_NW(pointnode *curr, const point2d *pt)
+{
+    return pt->x < curr->pt->x && pt->y > curr->pt->y;
+}
+
+bool is_SW(pointnode *curr, const point2d *pt)
+{
+    return pt->x < curr->pt->x && pt->y <= curr->pt->y;
+}
+
+bool is_SE(pointnode *curr, const point2d *pt)
+{
+    return pt->x >= curr->pt->x && pt->y <= curr->pt->y;
+}
+
+bool is_NE(pointnode *curr, const point2d *pt)
+{
+    return curr->pt->x >= pt->x && curr->pt->y > pt->y;
+}
+
+void set_NW_region(pointnode *parent, pointnode *child)
+{
+    pointset_set_region(child, (point2d){parent->region_ll->x, parent->pt->y},
+                        (point2d){parent->pt->x, parent->region_ur->y});
+}
+
+void set_SW_region(pointnode *parent, pointnode *child)
+{
+    pointset_set_region(child, *parent->region_ll, *parent->pt);
+}
+
+void set_SE_region(pointnode *parent, pointnode *child)
+{
+    pointset_set_region(child, (point2d){parent->pt->x, parent->region_ll->y}, (point2d){parent->region_ur->x, parent->pt->y});
+}
+
+void set_NE_region(pointnode *parent, pointnode *child)
+{
+    pointset_set_region(child, *parent->pt, *parent->region_ur);
 }
 
 bool pointset_contains(const pointset *t, const point2d *pt)
@@ -393,27 +657,21 @@ int compare_points(const void *p1, const void *p2)
 
 pointnode *find_path(pointnode *root, const point2d *pt)
 {
-    if (pt->x < root->pt->x)
+    if (is_NW(root, pt))
     {
-        if (pt->y > root->pt->y)
-        {
-            return root->NW;
-        }
-        else
-        {
-            return root->SW;
-        }
+        return root->NW;
     }
-    else
+    if (is_SW(root, pt))
     {
-        if (pt->y > root->pt->y)
-        {
-            return root->NE;
-        }
-        else
-        {
-            return root->SE;
-        }
+        return root->SW;
+    }
+    if (is_SE(root, pt))
+    {
+        return root->SE;
+    }
+    if (is_NE(root, pt))
+    {
+        return root->NE;
     }
 }
 
