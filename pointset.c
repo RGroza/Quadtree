@@ -59,6 +59,10 @@ void set_NW_region(pointnode *parent, pointnode *child);
 void set_SW_region(pointnode *parent, pointnode *child);
 void set_SE_region(pointnode *parent, pointnode *child);
 void set_NE_region(pointnode *parent, pointnode *child);
+void swap_NW_neighbors(pointnode *swapped_node, pointnode *new_node);
+void swap_SW_neighbors(pointnode *swapped_node, pointnode *new_node);
+void swap_SE_neighbors(pointnode *swapped_node, pointnode *new_node);
+void swap_NE_neighbors(pointnode *swapped_node, pointnode *new_node);
 
 pointset *pointset_create(const point2d *pts, size_t n)
 {
@@ -273,10 +277,10 @@ bool pointset_add(pointset *t, const point2d *pt)
         return true;
     }
 
-    if (pointset_contains(t, pt))
-    {
-        return false;
-    }
+    // if (pointset_contains(t, pt))
+    // {
+    //     return false;
+    // }
 
     /*
     pointnode *parent = pointset_find_node(t, pt);
@@ -336,28 +340,14 @@ bool pointset_add(pointset *t, const point2d *pt)
 
                 set_NW_region(curr, new_node);
 
-                pointnode *temp = curr->NW;
+                pointnode *swapped_node = curr->NW;
                 curr->NW = new_node;
-                new_node->NW = temp;
+                new_node->NW = swapped_node;
+                set_NW_region(new_node, swapped_node);
 
-                if (temp->SW != NULL && is_SW(new_node, temp->SW->pt))
-                {
-                    new_node->SW = temp->SW;
-                    set_SW_region(new_node, new_node->SW);
-                    temp->SW = NULL;
-                }
-                if (temp->SE != NULL && is_SE(new_node, temp->SE->pt))
-                {
-                    new_node->SE = temp->SE;
-                    set_SE_region(new_node, new_node->SE);
-                    temp->SE = NULL;
-                }
-                if (temp->NE != NULL && is_NE(new_node, temp->NE->pt))
-                {
-                    new_node->NE = temp->NE;
-                    set_NE_region(new_node, new_node->NE);
-                    temp->NE = NULL;
-                }
+                swap_SW_neighbors(swapped_node, new_node);
+                swap_SE_neighbors(swapped_node, new_node);
+                swap_NE_neighbors(swapped_node, new_node);
                 point_injected = true;
                 break;
             }
@@ -382,28 +372,21 @@ bool pointset_add(pointset *t, const point2d *pt)
 
                 set_SW_region(curr, new_node);
 
-                pointnode *temp = curr->SW;
+                pointnode *swapped_node = curr->SW;
                 curr->SW = new_node;
-                new_node->SW = temp;
+                new_node->SW = swapped_node;
+                set_SW_region(new_node, swapped_node);
 
-                if (temp->SE != NULL && is_SE(new_node, temp->SE->pt))
-                {
-                    new_node->SE = temp->SE;
-                    set_SE_region(new_node, new_node->SE);
-                    temp->SE = NULL;
-                }
-                if (temp->NE != NULL && is_NE(new_node, temp->NE->pt))
-                {
-                    new_node->NE = temp->NE;
-                    set_NE_region(new_node, new_node->NE);
-                    temp->NE = NULL;
-                }
-                if (temp->NW != NULL && is_NW(new_node, temp->NW->pt))
-                {
-                    new_node->NW = temp->NW;
-                    set_NW_region(new_node, new_node->NW);
-                    temp->NW = NULL;
-                }
+                // if (swapped_node->SE != NULL && is_SE(new_node, swapped_node->SE->pt))
+                // {
+                //     new_node->SE = swapped_node->SE;
+                //     set_SE_region(new_node, new_node->SE);
+                //     swapped_node->SE = NULL;
+                // }
+
+                swap_NW_neighbors(swapped_node, new_node);
+                swap_SE_neighbors(swapped_node, new_node);
+                swap_NE_neighbors(swapped_node, new_node);
                 point_injected = true;
                 break;
             }
@@ -422,34 +405,26 @@ bool pointset_add(pointset *t, const point2d *pt)
         }
         else if (is_SE(curr, pt))
         {
+            // Next SE node is the same as query pt
+            if (curr->SE != NULL && curr->SE->pt->x == pt->x && curr->SE->pt->y == pt->y)
+            {
+                return false;
+            }
+
             if (curr->SE != NULL && is_NW(curr->SE, pt))
             {
                 new_node = create_new_node(pt);
 
                 set_SE_region(curr, new_node);
 
-                pointnode *temp = curr->SE;
+                pointnode *swapped_node = curr->SE;
                 curr->SE = new_node;
-                new_node->SE = temp;
+                new_node->SE = swapped_node;
+                set_SE_region(new_node, swapped_node);
 
-                if (temp->NE != NULL && is_NE(new_node, temp->NE->pt))
-                {
-                    new_node->NE = temp->NE;
-                    set_NE_region(new_node, new_node->NE);
-                    temp->NE = NULL;
-                }
-                if (temp->NW != NULL && is_NW(new_node, temp->NW->pt))
-                {
-                    new_node->NW = temp->NW;
-                    set_NW_region(new_node, new_node->NW);
-                    temp->NW = NULL;
-                }
-                if (temp->SW != NULL && is_SW(new_node, temp->SW->pt))
-                {
-                    new_node->SW = temp->SW;
-                    set_SW_region(new_node, new_node->SW);
-                    temp->SW = NULL;
-                }
+                swap_NW_neighbors(swapped_node, new_node);
+                swap_SW_neighbors(swapped_node, new_node);
+                swap_NE_neighbors(swapped_node, new_node);
                 point_injected = true;
                 break;
             }
@@ -474,28 +449,14 @@ bool pointset_add(pointset *t, const point2d *pt)
 
                 set_NE_region(curr, new_node);
 
-                pointnode *temp = curr->NE;
+                pointnode *swapped_node = curr->NE;
                 curr->NE = new_node;
-                new_node->NE = temp;
+                new_node->NE = swapped_node;
+                set_NE_region(new_node, swapped_node);
 
-                if (temp->NW != NULL && is_NW(new_node, temp->NW->pt))
-                {
-                    new_node->NW = temp->NW;
-                    set_NW_region(new_node, new_node->NW);
-                    temp->NW = NULL;
-                }
-                if (temp->SW != NULL && is_SW(new_node, temp->SW->pt))
-                {
-                    new_node->SW = temp->SW;
-                    set_SW_region(new_node, new_node->SW);
-                    temp->SW = NULL;
-                }
-                if (temp->SE != NULL && is_SE(new_node, temp->SE->pt))
-                {
-                    new_node->SE = temp->SE;
-                    set_NE_region(new_node, new_node->NE);
-                    temp->SE = NULL;
-                }
+                swap_NW_neighbors(swapped_node, new_node);
+                swap_SW_neighbors(swapped_node, new_node);
+                swap_SE_neighbors(swapped_node, new_node);
                 point_injected = true;
                 break;
             }
@@ -524,6 +485,66 @@ bool pointset_add(pointset *t, const point2d *pt)
     return true;
 }
 
+void swap_NW_neighbors(pointnode *swapped_node, pointnode *new_node)
+{
+    pointnode *next_swap = swapped_node;
+    while (next_swap->NW != NULL && !is_NW(new_node, next_swap->NW->pt))
+    {
+        next_swap = next_swap->NW;
+    }
+    if (next_swap != NULL)
+    {
+        new_node->NW = next_swap->NW;
+        set_NW_region(new_node, new_node->NW);
+        next_swap->NW = NULL;
+    }
+}
+
+void swap_SW_neighbors(pointnode *swapped_node, pointnode *new_node)
+{
+    pointnode *next_swap = swapped_node;
+    while (next_swap->SW != NULL && !is_SW(new_node, next_swap->SW->pt))
+    {
+        next_swap = next_swap->SW;
+    }
+    if (next_swap != NULL)
+    {
+        new_node->SW = next_swap->SW;
+        set_SW_region(new_node, new_node->SW);
+        next_swap->SW = NULL;
+    }
+}
+
+void swap_SE_neighbors(pointnode *swapped_node, pointnode *new_node)
+{
+    pointnode *next_swap = swapped_node;
+    while (next_swap->SE != NULL && !is_SE(new_node, next_swap->SE->pt))
+    {
+        next_swap = next_swap->SE;
+    }
+    if (next_swap != NULL)
+    {
+        new_node->SE = next_swap->SE;
+        set_SE_region(new_node, new_node->SE);
+        next_swap->SE = NULL;
+    }
+}
+
+void swap_NE_neighbors(pointnode *swapped_node, pointnode *new_node)
+{
+    pointnode *next_swap = swapped_node;
+    while (next_swap->NE != NULL && !is_NE(new_node, next_swap->NE->pt))
+    {
+        next_swap = next_swap->NE;
+    }
+    if (next_swap != NULL)
+    {
+        new_node->NE = next_swap->NE;
+        set_NE_region(new_node, new_node->NE);
+        next_swap->NE = NULL;
+    }
+}
+
 pointnode *create_new_node(const point2d *pt)
 {
     pointnode *new = malloc(sizeof(pointnode));
@@ -542,22 +563,22 @@ pointnode *create_new_node(const point2d *pt)
 
 bool is_NW(pointnode *curr, const point2d *pt)
 {
-    return pt->x < curr->pt->x && pt->y > curr->pt->y;
+    return pt->x <= curr->pt->x && pt->y >= curr->pt->y;
 }
 
 bool is_SW(pointnode *curr, const point2d *pt)
 {
-    return pt->x < curr->pt->x && pt->y <= curr->pt->y;
+    return pt->x <= curr->pt->x && pt->y < curr->pt->y;
 }
 
 bool is_SE(pointnode *curr, const point2d *pt)
 {
-    return pt->x >= curr->pt->x && pt->y <= curr->pt->y;
+    return pt->x > curr->pt->x && pt->y < curr->pt->y;
 }
 
 bool is_NE(pointnode *curr, const point2d *pt)
 {
-    return curr->pt->x >= pt->x && curr->pt->y > pt->y;
+    return pt->x > curr->pt->x && pt->y >= curr->pt->y;
 }
 
 void set_NW_region(pointnode *parent, pointnode *child)
