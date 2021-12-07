@@ -34,12 +34,12 @@ struct _pqueue
  */
 static void pqueue_embiggen(pqueue *q, size_t new_capacity);
 
+void swap_entries(pqueue_entry *entry1, pqueue_entry *entry2);
+void pqueue_rebalance_heap(pqueue *q, int i);
+
 int get_left_child(pqueue *q, int index);
 int get_right_child(pqueue *q, int index);
 int get_parent(pqueue *q, int index);
-
-void swap_entries(pqueue_entry *entry1, pqueue_entry *entry2);
-void pqueue_rebalance_heap(pqueue *q, int i);
 
 pqueue *pqueue_create()
 {
@@ -68,20 +68,33 @@ size_t pqueue_size(const pqueue *q)
     return q != NULL ? q->size : 0;
 }
 
-void swap_entries(pqueue_entry *entry1, pqueue_entry *entry2)
+/**
+ * Swaps two entries in the heap along with their struct members
+ *
+ * @param e1 a pointer to an entry in the pqueue
+ * @param e2 a pointer to another entry in the pqueue
+ */
+void swap_entries(pqueue_entry *e1, pqueue_entry *e2)
 {
-    void *temp = entry1->item;
-    double pri = entry1->priority;
-    size_t ID = entry1->ID;
+    void *temp = e1->item;
+    double pri = e1->priority;
+    size_t ID = e1->ID;
 
-    entry1->priority = entry2->priority;
-    entry2->priority = pri;
-    entry1->item = entry2->item;
-    entry2->item = temp;
-    entry1->ID = entry2->ID;
-    entry2->ID = ID;
+    e1->priority = e2->priority;
+    e2->priority = pri;
+    e1->item = e2->item;
+    e2->item = temp;
+    e1->ID = e2->ID;
+    e2->ID = ID;
 }
 
+/**
+ * Returns the index of the left child
+ *
+ * @param q a pointer to the pqueue
+ * @param i the index of the parent entry
+ * @return the index of the left child
+ */
 int get_left_child(pqueue *q, int i)
 {
     if (i >= 0 && 2 * i <= q->capacity)
@@ -91,6 +104,13 @@ int get_left_child(pqueue *q, int i)
     return -1;
 }
 
+/**
+ * Returns the index of the right child
+ *
+ * @param q a pointer to the pqueue
+ * @param i the index of the parent entry
+ * @return the index of the right child
+ */
 int get_right_child(pqueue *q, int i)
 {
     if (i >= 0 && 2 * i + 1 <= q->capacity)
@@ -100,6 +120,13 @@ int get_right_child(pqueue *q, int i)
     return -1;
 }
 
+/**
+ * Returns the index of the parent from one of the children
+ *
+ * @param q a pointer to the pqueue
+ * @param i the index of the child
+ * @return the index of the parent
+ */
 int get_parent(pqueue *q, int i)
 {
     if (i >= 0 && i / 2 <= q->capacity)
@@ -128,13 +155,17 @@ bool pqueue_enqueue(pqueue *q, double pri, void *item, size_t ID)
         q->entries[q->size].ID = ID;
         q->size++;
 
-        // Check if parent entry needs to be swapped with new child to maintain increasing order of priority
         int i = q->size - 1;
         int parent_i = get_parent(q, i);
+
+        // Keep swapping entries until the new entry has a priority that is greater than its parent
         while (i >= 0 && q->entries[i].priority < q->entries[parent_i].priority)
         {
+            // Swap the new entry with its parewnt
             swap_entries(&q->entries[i], &q->entries[parent_i]);
-            i = get_parent(q, i);
+
+            // Obtain the new indices for the new entry and its parent entry
+            i = parent_i;
             parent_i = get_parent(q, i);
         }
         return true;
@@ -162,19 +193,21 @@ void *pqueue_dequeue(pqueue *q, double *pri, size_t *ID)
         return NULL;
     }
 
-    // copy last item into place occupied by item with min priority
+    // Copy last item into place occupied by item with min priority
     pqueue_entry temp = q->entries[0];
     *ID = temp.ID;
 
     q->entries[0] = q->entries[q->size - 1];
     q->size--;
 
+    // Rebalance the heap starting from the root entry in order to maintain an increasing order of
+    // priority in the heap
     pqueue_rebalance_heap(q, 0);
 
-    // shrink the array
+    // Shrink the heap
     if (q->size < q->capacity / 4 && q->capacity / 2 >= PQUEUE_INITIAL_CAPACITY)
     {
-        pqueue_embiggen(q, q->capacity / 2); // embiggen works as shrinkify too
+        pqueue_embiggen(q, q->capacity / 2); // Embiggen works as shrinkify too
     }
 
     if (pri != NULL)
@@ -189,12 +222,19 @@ void *pqueue_dequeue(pqueue *q, double *pri, size_t *ID)
     return temp.item;
 }
 
+/**
+ * Rebalances the heap in order to maintain increasing order of priority.
+ *
+ * @param q a pointer to the pqueue
+ * @param i the index of parent node to start rebalancing operation from
+ */
 void pqueue_rebalance_heap(pqueue *q, int i)
 {
+    int curr = i;
     int left_i = get_left_child(q, i);
     int right_i = get_right_child(q, i);
-    int curr = i;
 
+    // Determine which child has the lower priority in the queue
     if (left_i > 0 && left_i < q->size)
     {
         if (q->entries[left_i].priority < q->entries[curr].priority)
@@ -211,8 +251,9 @@ void pqueue_rebalance_heap(pqueue *q, int i)
         }
     }
 
-    if (i != curr)
+    if (curr != i)
     {
+        // Swap the parent and the chosen child entries
         swap_entries(&q->entries[i], &q->entries[curr]);
         pqueue_rebalance_heap(q, curr);
     }
@@ -222,7 +263,7 @@ void pqueue_destroy(pqueue *q, void (*f)(void *))
 {
     if (q != NULL)
     {
-        // free the remaining items using the given function
+        // Free the remaining items using the given function
         if (f != NULL)
         {
             for (size_t i = 0; i < q->size; i++)
@@ -231,7 +272,7 @@ void pqueue_destroy(pqueue *q, void (*f)(void *))
             }
         }
 
-        // free the array
+        // Free the array
         free(q->entries);
 
 #ifdef COUNT
@@ -239,7 +280,7 @@ void pqueue_destroy(pqueue *q, void (*f)(void *))
                 q->dequeue_count);
 #endif
 
-        // free the meta-data
+        // Free the meta-data
         free(q);
     }
 }

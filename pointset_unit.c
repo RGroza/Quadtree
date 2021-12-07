@@ -83,6 +83,15 @@ point2d example_1[] = {
 
 size_t example_1_count = sizeof(example_1) / sizeof(*example_1);
 
+// point2d example_1[] = {
+//     {5.0, 5.0}, // A
+//     {1.0, 9.0}, // B
+//     {4.0, 9.0}, // C
+//     {3.0, 7.0}  // D
+// };
+
+// size_t example_1_count = sizeof(example_1) / sizeof(*example_1);
+
 point2d example_2[] = {{6.0, 3.0}, {2.0, 17.0}, {15.0, 20.0}, {2.0, 3.0}, {17.0, 13.0}, {3.0, 9.0}, {10.0, 11.0}, {7.0, 7.0}, {9.0, 12.0}, {16.0, 11.0}, {15.0, 2.0}, {19.0, 4.0}};
 size_t example_2_count = sizeof(example_2) / sizeof(*example_2);
 
