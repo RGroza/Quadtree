@@ -93,19 +93,19 @@ pointset *pointset_create(const point2d *pts, size_t n)
 
     qsort(pts_cpy, n, sizeof(point2d), compare_points);
 
-    // pointset_add(result, &pts_cpy[n / 2]);
+    pointset_add(result, &pts_cpy[n / 2]);
 
-    // for (int i = 0; i < n / 2; i++)
-    // {
-    //     pointset_add(result, &pts_cpy[i]);
-    // }
-    // for (int i = n / 2 + 1; i < n; i++)
-    // {
-    //     pointset_add(result, &pts_cpy[i]);
-    // }
+    for (int i = 0; i < n / 2; i++)
+    {
+        pointset_add(result, &pts_cpy[i]);
+    }
+    for (int i = n / 2 + 1; i < n; i++)
+    {
+        pointset_add(result, &pts_cpy[i]);
+    }
 
-    result->root = create_new_node(&pts_cpy[n / 2]);
-    pointset_recursive(result->root, pts_cpy, n);
+    // result->root = create_new_node(&pts_cpy[n / 2]);
+    // pointset_recursive(result->root, pts_cpy, n);
 
     free(pts_cpy);
 
